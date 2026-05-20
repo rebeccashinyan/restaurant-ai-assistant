@@ -7,6 +7,26 @@ type Message = {
   content: string;
 };
 
+const recommendedItems = [
+  {
+    name: "Sakura Bloom Latte",
+    price: "$7",
+    description:
+      "Ceremonial-grade matcha blended with milk and topped with delicate sakura cream foam.",
+  },
+  {
+    name: "Matcha Mille Crepe",
+    price: "$9",
+    description:
+      "Delicate layers of crepes with rich ceremonial matcha cream.",
+  },
+  {
+    name: "Ube Cheesecake",
+    price: "$8",
+    description: "Creamy ube cheesecake with a buttery graham crust.",
+  },
+];
+
 export default function Home() {
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -92,11 +112,11 @@ export default function Home() {
     <main className="min-h-screen bg-orange-50 p-10">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-bold text-orange-600 mb-4">
-          Sakura Kitchen
+          Sakura Bloom Matcha
         </h1>
 
         <p className="text-gray-700 mb-10">
-          AI-powered restaurant assistant
+          AI-powered matcha café assistant
         </p>
 
         <div className="bg-white p-6 rounded-2xl shadow">
@@ -106,7 +126,7 @@ export default function Home() {
 
           <input
             type="text"
-            placeholder="Ask about menu..."
+            placeholder="Ask about drinks, desserts, or recommendations..."
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
             onKeyDown={(e) => {
@@ -142,7 +162,9 @@ export default function Home() {
             {isLoading && (
               <div className="bg-orange-100 text-gray-900 p-4 rounded-2xl max-w-[70%]">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">AI is thinking</span>
+                  <span className="text-sm text-gray-600">
+                    AI is thinking
+                  </span>
 
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
@@ -152,6 +174,31 @@ export default function Home() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold mb-4">
+              Recommended Items
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recommendedItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="border border-orange-100 rounded-2xl p-4 bg-orange-50"
+                >
+                  <h4 className="font-semibold text-orange-700">
+                    {item.name}
+                  </h4>
+
+                  <p className="font-bold mt-1">{item.price}</p>
+
+                  <p className="text-sm text-gray-600 mt-2">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
