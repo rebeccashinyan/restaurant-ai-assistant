@@ -2,19 +2,31 @@
 
 import { useState } from "react";
 
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export default function Home() {
   const [userMessage, setUserMessage] = useState("");
-  const [aiReply, setAiReply] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSend = async () => {
     if (!userMessage.trim()) {
-      setAiReply("Please type a question first.");
       return;
     }
 
+    const currentMessage = userMessage;
+
+    const newUserMessage: Message = {
+      role: "user",
+      content: currentMessage,
+    };
+
+    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+    setUserMessage("");
     setIsLoading(true);
-    setAiReply("");
 
     try {
       const response = await fetch("/api/chat", {
@@ -23,28 +35,54 @@ export default function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: userMessage,
+          message: currentMessage,
         }),
       });
 
       const text = await response.text();
 
       if (!text) {
-        setAiReply("No response from the API. Check your Terminal for backend errors.");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            role: "assistant",
+            content:
+              "No response from the API. Check your Terminal for backend errors.",
+          },
+        ]);
         return;
       }
 
       const data = JSON.parse(text);
 
       if (!response.ok) {
-        setAiReply(data.error || "Something went wrong with the API.");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            role: "assistant",
+            content: data.error || "Something went wrong with the API.",
+          },
+        ]);
         return;
       }
 
-      setAiReply(data.reply);
+      const newAiMessage: Message = {
+        role: "assistant",
+        content: data.reply,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, newAiMessage]);
     } catch (error) {
       console.error(error);
-      setAiReply("Something went wrong. Check the browser console and Terminal.");
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: "assistant",
+          content:
+            "Something went wrong. Check the browser console and Terminal.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +109,11 @@ export default function Home() {
             placeholder="Ask about menu..."
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSend();
+              }
+            }}
             className="w-full p-3 border rounded-xl mb-4"
           />
 
@@ -82,11 +125,34 @@ export default function Home() {
             {isLoading ? "Thinking..." : "Send"}
           </button>
 
-          {aiReply && (
-            <div className="mt-6 bg-orange-100 p-4 rounded-xl">
-              {aiReply}
-            </div>
-          )}
+          <div className="mt-6 space-y-4">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={
+                  message.role === "user"
+                    ? "bg-orange-500 text-white p-4 rounded-2xl max-w-[70%] ml-auto"
+                    : "bg-orange-100 text-gray-900 p-4 rounded-2xl max-w-[70%]"
+                }
+              >
+                {message.content}
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="bg-orange-100 text-gray-900 p-4 rounded-2xl max-w-[70%]">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">AI is thinking</span>
+
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </main>
