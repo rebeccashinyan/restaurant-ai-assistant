@@ -19,8 +19,7 @@ const sections = [
         {
           name: "Cloud Matcha",
           price: "$7",
-          description:
-            "Smooth matcha latte finished with soft vanilla cream cloud.",
+          description: "Smooth matcha latte finished with soft vanilla cream cloud.",
         },
         {
           name: "Hojicha Blossom Latte",
@@ -34,6 +33,11 @@ const sections = [
           description:
             "Creamy ube and premium matcha swirled together for a rich earthy flavor.",
         },
+      ],
+      addOns: [
+        { name: "Oat Milk", price: "+$1" },
+        { name: "Matcha Shot", price: "+$1.5" },
+        { name: "Sakura Cream Foam", price: "+$1" },
       ],
     },
     {
@@ -56,14 +60,12 @@ const sections = [
         {
           name: "Ube Cheesecake",
           price: "$8",
-          description:
-            "Creamy ube cheesecake with a buttery graham crust.",
+          description: "Creamy ube cheesecake with a buttery graham crust.",
         },
         {
           name: "Hojicha Roll Cake",
           price: "$7",
-          description:
-            "Soft sponge cake filled with roasted hojicha cream.",
+          description: "Soft sponge cake filled with roasted hojicha cream.",
         },
       ],
     },
@@ -77,13 +79,7 @@ const sections = [
   
   const softServeFlavors = ["Sakura Matcha", "Hojicha", "Ube Blossom"];
   
-  const addOns = [
-    { name: "Oat Milk", price: "+$1" },
-    { name: "Matcha Shot", price: "+$1.5" },
-    { name: "Sakura Cream Foam", price: "+$1" },
-  ];
-  
-  const toppings = [
+  const softServeToppings = [
     { name: "Mochi Bites", price: "+$1.5" },
     { name: "Strawberry Drizzle", price: "+$1" },
   ];
@@ -96,9 +92,7 @@ const sections = [
             Sakura Bloom Matcha
           </p>
   
-          <h1 className="mb-16 text-5xl font-bold text-zinc-950">
-            Our Menu
-          </h1>
+          <h1 className="mb-16 text-5xl font-bold text-zinc-950">Our Menu</h1>
   
           <div className="space-y-28">
             {sections.map((section, index) => (
@@ -139,12 +133,40 @@ const sections = [
                       </div>
                     ))}
                   </div>
+  
+                  {section.addOns && (
+                    <div className="mt-10 border-t border-black/10 pt-8">
+                      <h3 className="mb-4 text-lg font-bold text-zinc-950">
+                        Drink Add-ons
+                      </h3>
+  
+                      <div className="space-y-3">
+                        {section.addOns.map((item) => (
+                          <div
+                            key={item.name}
+                            className="flex justify-between gap-6 text-base"
+                          >
+                            <span>{item.name}</span>
+                            <span className="font-bold">{item.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
   
-            <div className="grid items-start gap-8 lg:grid-cols-3">
-              <div className="rounded-[2rem] bg-[#efffc8] p-10 shadow-sm lg:col-span-2">
+            <div className="grid items-center gap-0 lg:grid-cols-2">
+              <div className="relative z-0 h-[430px] overflow-hidden rounded-[2rem]">
+                <img
+                  src="https://images.unsplash.com/photo-1488900128323-21503983a07e?q=80&w=1200&auto=format&fit=crop"
+                  alt="Bloom Soft Serve"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+  
+              <div className="relative z-10 -mt-10 rounded-[2rem] bg-[#efffc8] p-10 shadow-sm lg:-ml-8 lg:mt-0">
                 <h2 className="mb-8 text-2xl font-bold text-zinc-950">
                   Bloom Soft Serve
                 </h2>
@@ -165,42 +187,30 @@ const sections = [
                   ))}
                 </div>
   
-                <h3 className="mb-4 text-lg font-bold text-zinc-950">
-                  Flavors
-                </h3>
+                <h3 className="mb-4 text-lg font-bold text-zinc-950">Flavors</h3>
   
-                <ul className="space-y-2 text-lg text-zinc-800">
+                <ul className="mb-10 space-y-2 text-lg text-zinc-800">
                   {softServeFlavors.map((flavor) => (
                     <li key={flavor}>• {flavor}</li>
                   ))}
                 </ul>
-              </div>
   
-              <div className="rounded-[2rem] bg-white p-10 shadow-sm">
-                <h2 className="mb-6 text-2xl font-bold text-zinc-950">
-                  Extras
-                </h2>
+                <div className="border-t border-black/10 pt-8">
+                  <h3 className="mb-4 text-lg font-bold text-zinc-950">
+                    Soft Serve Toppings
+                  </h3>
   
-                <h3 className="mb-3 text-lg font-bold">Drink Add-ons</h3>
-                <div className="mb-8 space-y-3">
-                  {addOns.map((item) => (
-                    <div key={item.name} className="flex justify-between gap-6">
-                      <span>{item.name}</span>
-                      <span className="font-bold">{item.price}</span>
-                    </div>
-                  ))}
-                </div>
-  
-                <h3 className="mb-3 text-lg font-bold">
-                  Soft Serve Toppings
-                </h3>
-                <div className="space-y-3">
-                  {toppings.map((item) => (
-                    <div key={item.name} className="flex justify-between gap-6">
-                      <span>{item.name}</span>
-                      <span className="font-bold">{item.price}</span>
-                    </div>
-                  ))}
+                  <div className="space-y-3">
+                    {softServeToppings.map((item) => (
+                      <div
+                        key={item.name}
+                        className="flex justify-between gap-6 text-base"
+                      >
+                        <span>{item.name}</span>
+                        <span className="font-bold">{item.price}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
