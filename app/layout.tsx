@@ -32,7 +32,7 @@ export default function RootLayout({
         <nav className="flex gap-8 p-8 text-2xl font-medium">
           <Link href="/">Home</Link>
           <Link href="/menu">Menu</Link>
-          <Link href="/location">Location</Link>
+          <Link href="/visit">Visit Us</Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/ask">Ask Sakura</Link>
