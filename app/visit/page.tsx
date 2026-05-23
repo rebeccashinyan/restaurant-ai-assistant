@@ -1,20 +1,27 @@
 export default function VisitPage() {
   return (
-    <main className="min-h-screen bg-[#fffaf2] px-8 py-20">
-      <section className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-2">
-        <div>
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-orange-700">
-            Visit Sakura Bloom
-          </p>
+    <main className="bg-[#1F1814] text-[#F7F3ED]">
+      {/* Hero */}
+      <section
+        className="relative flex h-72 items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop')",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/50" />
+        <h1 className="relative z-10 text-5xl font-serif font-bold text-white">
+          Visit Us
+        </h1>
+      </section>
 
-          <h1 className="mb-8 text-6xl font-bold leading-tight text-zinc-950">
-            Visit Us
-          </h1>
-
-          <div className="space-y-8 text-zinc-800">
+      {/* Location */}
+      <section className="mx-auto max-w-6xl px-8 py-20">
+        <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-10">
+          <div className="space-y-10 font-serif lg:pt-2">
             <div>
-              <h2 className="mb-2 text-xl font-bold">Address</h2>
-              <p className="text-lg leading-relaxed">
+              <p className="mb-3 text-xl font-bold text-white">Address</p>
+              <p className="text-lg leading-relaxed text-white/90">
                 128 Sakura Street
                 <br />
                 New York, NY 10012
@@ -22,32 +29,32 @@ export default function VisitPage() {
             </div>
 
             <div>
-              <h2 className="mb-2 text-xl font-bold">Opening Hours</h2>
-              <p className="text-lg leading-relaxed">
+              <p className="mb-3 text-xl font-bold text-white">
+                Opening Hours
+              </p>
+              <p className="text-lg leading-relaxed text-white/90">
                 Mon – Fri: 8AM – 8PM
                 <br />
                 Sat – Sun: 9AM – 9PM
               </p>
             </div>
+          </div>
 
-            <div>
-              <h2 className="mb-2 text-xl font-bold">Contact</h2>
-              <p className="text-lg leading-relaxed">
-                (212) 555-2038
-                <br />
-                hello@sakurabloommatcha.com
-              </p>
+          <div>
+            <h2 className="mb-6 text-4xl font-serif text-white">
+              Find Us on Google Maps
+            </h2>
+
+            <div className="overflow-hidden rounded-3xl">
+              <iframe
+                title="Sakura Bloom Matcha on Google Maps"
+                src="https://www.google.com/maps?q=128+Sakura+Street+New+York+NY+10012&output=embed"
+                className="h-[480px] w-full border-0 md:h-[520px]"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
-        </div>
-
-        <div className="overflow-hidden rounded-[2rem] shadow-sm">
-          <iframe
-            title="Sakura Bloom Matcha Google Map"
-            src="https://www.google.com/maps?q=New%20York%20NY%2010012&output=embed"
-            className="h-[560px] w-full border-0"
-            loading="lazy"
-          />
         </div>
       </section>
     </main>

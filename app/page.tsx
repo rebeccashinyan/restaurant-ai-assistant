@@ -1,13 +1,35 @@
+const heroImage =
+  "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=2000&auto=format&fit=crop";
+
+const meaningImage =
+  "https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=1200&auto=format&fit=crop";
+
+const storyImage =
+  "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop";
+
+const missionImage =
+  "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=1200&auto=format&fit=crop";
+
+const reviewImages = [
+  "https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1470337458703-46ad1756c187?q=80&w=600&auto=format&fit=crop",
+];
+
+const galleryImages = [
+  "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1611143080716-fb3b0ff2986d?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1564890369478-c89ca6d9ed5e?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1559494020-52d36de326f0?w=840&h=576&fit=crop",
+  "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=840&h=576&fit=crop",
+];
+
 export default function Home() {
-  const galleryImages = [
-    "/gallery-1.png",
-    "/gallery-2.png",
-    "/gallery-3.png",
-    "/gallery-4.png",
-    "/gallery-5.png",
-    "/gallery-6.png",
-    "/gallery-7.png",
-  ];
 
   return (
     <main className="bg-[#1F1814] text-[#F7F3ED]">
@@ -15,7 +37,7 @@ export default function Home() {
       <section className="px-6 pt-6">
         <div
           className="relative h-[72vh] rounded-b-2xl bg-cover bg-center overflow-hidden"
-          style={{ backgroundImage: "url('/hero.png')" }}
+          style={{ backgroundImage: `url('${heroImage}')` }}
         >
           <div className="absolute inset-0 bg-black/30" />
           <h1 className="absolute inset-0 flex items-center justify-center text-5xl md:text-7xl font-serif text-[#F3E8E8]">
@@ -44,18 +66,18 @@ export default function Home() {
         </div>
 
         <img
-          src="/logo-wall.png"
-          alt="Sakura Bloom logo wall"
-          className="w-full rounded-2xl object-cover"
+          src={meaningImage}
+          alt="Cherry blossoms at Sakura Bloom"
+          className="h-[480px] w-full rounded-2xl object-cover"
         />
       </section>
 
       {/* Story */}
       <section className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20 px-8 py-20 items-center">
         <img
-          src="/story.png"
-          alt="Matcha story"
-          className="w-full rounded-2xl object-cover"
+          src={storyImage}
+          alt="Matcha latte at Sakura Bloom"
+          className="h-[480px] w-full rounded-2xl object-cover"
         />
 
         <div>
@@ -94,9 +116,9 @@ export default function Home() {
         </div>
 
         <img
-          src="/matcha-powder.png"
-          alt="Matcha powder"
-          className="w-full rounded-2xl object-cover"
+          src={missionImage}
+          alt="Matcha preparation"
+          className="h-[480px] w-full rounded-2xl object-cover"
         />
       </section>
 
@@ -121,9 +143,14 @@ export default function Home() {
           </div>
 
           <div className="grid gap-6">
-            <div className="rounded-3xl bg-[#F7F3ED]" />
-            <div className="rounded-3xl bg-[#F7F3ED]" />
-            <div className="rounded-3xl bg-[#F7F3ED]" />
+            {reviewImages.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt={`Customer photo ${index + 1}`}
+                className="h-40 w-full rounded-3xl object-cover md:h-auto md:min-h-[140px]"
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -137,23 +164,30 @@ export default function Home() {
         <div className="flex gap-10 overflow-x-auto pb-8">
           {galleryImages.map((image, index) => (
             <img
-              key={index}
+              key={`gallery-top-${index}`}
               src={image}
               alt={`Sakura Bloom gallery ${index + 1}`}
+              width={420}
+              height={288}
               className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
             />
           ))}
         </div>
 
         <div className="flex gap-10 overflow-x-auto">
-          {galleryImages.slice().reverse().map((image, index) => (
-            <img
-              key={index}
-              src={image}
-              alt={`Sakura Bloom gallery ${index + 1}`}
-              className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
-            />
-          ))}
+          {galleryImages
+            .slice()
+            .reverse()
+            .map((image, index) => (
+              <img
+                key={`gallery-bottom-${index}`}
+                src={image}
+                alt={`Sakura Bloom gallery ${galleryImages.length - index}`}
+                width={420}
+                height={288}
+                className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
+              />
+            ))}
         </div>
       </section>
 
