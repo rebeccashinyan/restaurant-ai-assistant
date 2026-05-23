@@ -1,196 +1,193 @@
-import Link from "next/link";
+export default function Home() {
+  const galleryImages = [
+    "/gallery-1.png",
+    "/gallery-2.png",
+    "/gallery-3.png",
+    "/gallery-4.png",
+    "/gallery-5.png",
+    "/gallery-6.png",
+    "/gallery-7.png",
+  ];
 
-const featuredItems = [
-  {
-    name: "Sakura Bloom Latte",
-    description: "Ceremonial matcha with milk and sakura cream foam.",
-    price: "$7",
-  },
-  {
-    name: "Strawberry Sakura Matcha",
-    description: "Fresh strawberry puree layered with creamy matcha.",
-    price: "$8",
-  },
-  {
-    name: "Cloud Matcha",
-    description: "Smooth matcha latte finished with vanilla cream cloud.",
-    price: "$7",
-  },
-];
-
-export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#fffaf2]">
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-8 py-20 lg:grid-cols-2">
-        <div>
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-orange-700">
+    <main className="bg-[#1F1814] text-[#F7F3ED]">
+      {/* Hero */}
+      <section className="px-6 pt-6">
+        <div
+          className="relative h-[72vh] rounded-b-2xl bg-cover bg-center overflow-hidden"
+          style={{ backgroundImage: "url('/hero.png')" }}
+        >
+          <div className="absolute inset-0 bg-black/30" />
+          <h1 className="absolute inset-0 flex items-center justify-center text-5xl md:text-7xl font-serif text-[#F3E8E8]">
             Sakura Bloom Matcha
-          </p>
-
-          <h1 className="mb-6 text-6xl font-bold leading-tight text-zinc-950 md:text-7xl">
-            A modern matcha experience for quiet moments.
           </h1>
-
-          <p className="mb-8 max-w-xl text-lg leading-relaxed text-zinc-700">
-            Ceremonial-grade matcha, soft seasonal flavors, and thoughtful
-            drinks designed for slowing down.
-          </p>
-
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/menu"
-              className="rounded-full bg-zinc-950 px-7 py-4 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600"
-            >
-              View Menu
-            </Link>
-
-            <Link
-              href="/ask"
-              className="rounded-full border border-zinc-950 px-7 py-4 text-sm font-bold uppercase tracking-wide text-zinc-950 transition hover:bg-zinc-950 hover:text-white"
-            >
-              Ask Sakura
-            </Link>
-          </div>
-        </div>
-
-        <div className="h-[560px] overflow-hidden rounded-[2rem] shadow-sm">
-          <img
-            src="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop"
-            alt="Sakura Bloom Matcha drink"
-            className="h-full w-full object-cover"
-          />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-8 py-20">
-        <div className="mb-10 flex items-end justify-between gap-8">
-          <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-orange-700">
-              Featured Menu
-            </p>
-
-            <h2 className="text-4xl font-bold text-zinc-950">
-              Signature favorites
-            </h2>
-          </div>
-
-          <Link
-            href="/menu"
-            className="hidden text-sm font-bold uppercase tracking-wide text-orange-700 hover:text-zinc-950 md:block"
-          >
-            See Full Menu →
-          </Link>
+      {/* Meaning */}
+      <section className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20 px-8 py-28 items-center">
+        <div>
+          <h2 className="mb-8 text-4xl md:text-5xl font-serif">
+            What Does Sakura Bloom Mean?
+          </h2>
+          <p className="mb-6 text-lg leading-relaxed text-[#E6E2DD]">
+            “Sakura Bloom” represents a moment of quiet beauty. Inspired by the
+            short but memorable cherry blossom season in Japan, the name
+            reflects the idea of slowing down and appreciating small moments —
+            whether it’s a warm matcha latte, a conversation with friends, or a
+            peaceful afternoon alone.
+          </p>
+          <p className="text-lg leading-relaxed text-[#E6E2DD]">
+            To us, Sakura Bloom is more than just a matcha store. It’s a space
+            designed to feel calm, comforting, and intentional.
+          </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {featuredItems.map((item) => (
-            <div
-              key={item.name}
-              className="rounded-[2rem] bg-[#efffc8] p-8 shadow-sm"
-            >
-              <div className="mb-4 flex items-start justify-between gap-6">
-                <h3 className="text-2xl font-bold text-zinc-950">
-                  {item.name}
-                </h3>
+        <img
+          src="/logo-wall.png"
+          alt="Sakura Bloom logo wall"
+          className="w-full rounded-2xl object-cover"
+        />
+      </section>
 
-                <p className="text-xl font-bold text-zinc-950">{item.price}</p>
-              </div>
+      {/* Story */}
+      <section className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20 px-8 py-20 items-center">
+        <img
+          src="/story.png"
+          alt="Matcha story"
+          className="w-full rounded-2xl object-cover"
+        />
 
-              <p className="leading-relaxed text-zinc-700">
-                {item.description}
-              </p>
-            </div>
+        <div>
+          <h2 className="mb-8 text-4xl md:text-5xl font-serif">Our Story</h2>
+          <p className="mb-6 text-lg leading-relaxed text-[#E6E2DD]">
+            Sakura Bloom Matcha began with a simple idea: creating a modern
+            matcha experience that feels both elevated and peaceful.
+          </p>
+          <p className="mb-6 text-lg leading-relaxed text-[#E6E2DD]">
+            After traveling through tea shops and specialty matcha stores in
+            Tokyo, Kyoto, and Seoul, our founders fell in love with the balance
+            between minimal design, high-quality ingredients, and quiet
+            atmosphere.
+          </p>
+          <p className="text-lg leading-relaxed text-[#E6E2DD]">
+            Every drink, dessert, and detail is carefully designed to create a
+            feeling — soft, warm, and memorable.
+          </p>
+        </div>
+      </section>
+
+      {/* Mission */}
+      <section className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20 px-8 py-28 items-center">
+        <div>
+          <h2 className="mb-8 text-4xl md:text-5xl font-serif">Our Mission</h2>
+          <p className="mb-6 text-lg leading-relaxed text-[#E6E2DD]">
+            At Sakura Bloom, our mission is to create moments of comfort and
+            connection through thoughtfully crafted matcha drinks, desserts, and
+            experiences.
+          </p>
+          <p className="text-lg leading-relaxed text-[#E6E2DD]">
+            We believe matcha should be more than just a trend or a drink. It
+            should be part of a lifestyle centered around balance, quality, and
+            slowing down.
+          </p>
+        </div>
+
+        <img
+          src="/matcha-powder.png"
+          alt="Matcha powder"
+          className="w-full rounded-2xl object-cover"
+        />
+      </section>
+
+      {/* Reviews */}
+      <section className="mx-auto max-w-6xl px-8 py-24">
+        <h2 className="mb-4 text-4xl md:text-5xl font-serif">Users Review</h2>
+        <p className="mb-14 text-3xl md:text-5xl font-serif uppercase tracking-wide">
+          20K+ Happy Users Says About Our Product
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-[2.3fr_0.7fr] gap-6">
+          <div className="rounded-3xl bg-[#F7F3ED] p-12 text-[#1F1814]">
+            <p className="mb-28 text-2xl leading-relaxed font-serif">
+              “One of the most calming cafés I’ve been to in NYC. The interior
+              feels so intentional and peaceful, and the matcha quality is
+              actually amazing — not overly sweet like most places. I ordered
+              the Strawberry Sakura Matcha and the Sakura Nerikiri, and both
+              looked almost too pretty to eat.”
+            </p>
+            <p className="text-lg font-serif">Emily R.</p>
+            <p className="text-lg font-serif">Creative Director</p>
+          </div>
+
+          <div className="grid gap-6">
+            <div className="rounded-3xl bg-[#F7F3ED]" />
+            <div className="rounded-3xl bg-[#F7F3ED]" />
+            <div className="rounded-3xl bg-[#F7F3ED]" />
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      <section className="px-8 py-24 overflow-hidden">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-14 text-4xl md:text-5xl font-serif">Our Gallery</h2>
+        </div>
+
+        <div className="flex gap-10 overflow-x-auto pb-8">
+          {galleryImages.map((image, index) => (
+            <img
+              key={index}
+              src={image}
+              alt={`Sakura Bloom gallery ${index + 1}`}
+              className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
+            />
+          ))}
+        </div>
+
+        <div className="flex gap-10 overflow-x-auto">
+          {galleryImages.slice().reverse().map((image, index) => (
+            <img
+              key={index}
+              src={image}
+              alt={`Sakura Bloom gallery ${index + 1}`}
+              className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
+            />
           ))}
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-8 py-20 lg:grid-cols-2">
-        <div className="h-[520px] overflow-hidden rounded-[2rem] shadow-sm">
-          <img
-            src="https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=1200&auto=format&fit=crop"
-            alt="Sakura blossoms"
-            className="h-full w-full object-cover"
-          />
-        </div>
-
-        <div>
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-orange-700">
-            Our Philosophy
-          </p>
-
-          <h2 className="mb-6 text-5xl font-bold leading-tight text-zinc-950">
-            Designed for slowing down.
-          </h2>
-
-          <p className="mb-8 max-w-xl text-lg leading-relaxed text-zinc-700">
-            Sakura Bloom brings together premium matcha, seasonal inspiration,
-            and a peaceful modern space. Every drink, dessert, and detail is
-            created to feel soft, warm, and memorable.
-          </p>
-
-          <Link
-            href="/about"
-            className="rounded-full bg-zinc-950 px-7 py-4 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600"
-          >
-            About Us
-          </Link>
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-7xl gap-8 px-8 py-20 lg:grid-cols-2">
-        <div className="rounded-[2rem] bg-[#e9e5dc] p-10">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-orange-700">
-            Visit Us
-          </p>
-
-          <h2 className="mb-6 text-4xl font-bold text-zinc-950">
-            Come by for your next matcha moment.
-          </h2>
-
-          <div className="mb-8 space-y-4 text-lg leading-relaxed text-zinc-700">
-            <p>
-              128 Sakura Street
-              <br />
-              New York, NY 10012
+      {/* Footer */}
+      <footer className="mt-32 bg-[#E4DBCA] px-8 py-28 text-[#1F1814]">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20">
+          <div>
+            <h3 className="mb-4 text-3xl font-serif">Subscribe Form</h3>
+            <p className="mb-6 text-lg">
+              Sign up to get the latest on sales, new releases and more...
             </p>
 
-            <p>
-              Mon – Fri: 8AM – 8PM
-              <br />
-              Sat – Sun: 9AM – 9PM
-            </p>
+            <div className="flex max-w-xl gap-4">
+              <input
+                type="email"
+                placeholder="Email"
+                className="flex-1 rounded-full px-6 py-4 text-lg text-black outline-none"
+              />
+              <button className="rounded-full bg-black px-8 py-4 text-white">
+                Join
+              </button>
+            </div>
           </div>
 
-          <Link
-            href="/visit"
-            className="rounded-full bg-zinc-950 px-7 py-4 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600"
-          >
-            Store Info
-          </Link>
+          <div>
+            <h3 className="mb-10 text-3xl font-serif">Follow</h3>
+            <div className="flex gap-10">
+              <div className="h-14 w-14 rounded-full bg-[#D8D8D8]" />
+              <div className="h-14 w-14 rounded-full bg-[#D8D8D8]" />
+              <div className="h-14 w-14 rounded-full bg-[#D8D8D8]" />
+            </div>
+          </div>
         </div>
-
-        <div className="rounded-[2rem] bg-zinc-950 p-10 text-white">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-[#f2c9a8]">
-            Ask Sakura
-          </p>
-
-          <h2 className="mb-6 text-4xl font-bold">
-            Not sure what to order?
-          </h2>
-
-          <p className="mb-8 max-w-xl text-lg leading-relaxed text-white/75">
-            Tell Sakura what flavors you like, and get a personalized matcha
-            recommendation.
-          </p>
-
-          <Link
-            href="/ask"
-            className="rounded-full bg-[#f6d7b8] px-7 py-4 text-sm font-bold uppercase tracking-wide text-zinc-950 transition hover:bg-white"
-          >
-            Ask Now
-          </Link>
-        </div>
-      </section>
+      </footer>
     </main>
   );
 }
