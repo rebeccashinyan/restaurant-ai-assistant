@@ -157,37 +157,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mt-32 bg-[#E4DBCA] px-8 py-28 text-[#1F1814]">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20">
-          <div>
-            <h3 className="mb-4 text-3xl font-serif">Subscribe Form</h3>
-            <p className="mb-6 text-lg">
-              Sign up to get the latest on sales, new releases and more...
-            </p>
-
-            <div className="flex max-w-xl gap-4">
-              <input
-                type="email"
-                placeholder="Email"
-                className="flex-1 rounded-full px-6 py-4 text-lg text-black outline-none"
-              />
-              <button className="rounded-full bg-black px-8 py-4 text-white">
-                Join
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-10 text-3xl font-serif">Follow</h3>
-            <div className="flex gap-10">
-              <div className="h-14 w-14 rounded-full bg-[#D8D8D8]" />
-              <div className="h-14 w-14 rounded-full bg-[#D8D8D8]" />
-              <div className="h-14 w-14 rounded-full bg-[#D8D8D8]" />
-            </div>
-          </div>
-        </div>
-      </footer>
+    
     </main>
   );
 }
