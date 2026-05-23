@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type Message = {
@@ -7,67 +8,83 @@ type Message = {
   content: string;
 };
 
-const recommendedItems = [
+const faqItems = [
   {
-    name: "Sakura Bloom Latte",
-    price: "$7",
-    description:
-      "Ceremonial-grade matcha blended with milk and topped with delicate sakura cream foam.",
+    question: "What kind of matcha does Sakura Bloom use?",
+    answer:
+      "We use ceremonial-grade matcha sourced from Uji, Japan. It is stone-ground for a smooth, vibrant flavor and whisked fresh for every drink.",
   },
   {
-    name: "Matcha Mille Crepe",
-    price: "$9",
-    description:
-      "Delicate layers of crepes with rich ceremonial matcha cream.",
+    question: "Do you offer dairy-free options?",
+    answer:
+      "Yes. Oat milk is available for all lattes and specialty drinks, and many desserts can be made without dairy upon request.",
   },
   {
-    name: "Ube Cheesecake",
-    price: "$8",
-    description: "Creamy ube cheesecake with a buttery graham crust.",
+    question: "Are your desserts made fresh daily?",
+    answer:
+      "Our wagashi, cakes, and pastries are prepared in small batches each morning so they stay soft, delicate, and at their best throughout the day.",
+  },
+  {
+    question: "What is the most popular drink at Sakura Bloom?",
+    answer:
+      "The Sakura Bloom Latte is our signature — ceremonial matcha with milk and delicate sakura cream foam. The Strawberry Sakura Matcha is a close favorite.",
+  },
+  {
+    question: "Can I study or work at Sakura Bloom?",
+    answer:
+      "Absolutely. Our space is designed to feel calm and welcoming, with comfortable seating and a quiet atmosphere perfect for reading, studying, or remote work.",
+  },
+  {
+    question: "Do you offer seasonal menu items?",
+    answer:
+      "Yes. We rotate limited-time drinks and desserts inspired by cherry blossom season, summer fruit, and other Japanese seasonal traditions.",
+  },
+  {
+    question: "Is Sakura Bloom inspired by Japanese cafés?",
+    answer:
+      "Very much so. Our aesthetic, ingredients, and pacing are influenced by tea houses and specialty matcha shops in Tokyo and Kyoto, reimagined for a modern New York setting.",
   },
 ];
 
-export default function Home() {
+const welcomeMessage: Message = {
+  role: "assistant",
+  content:
+    "Hi! I'm Sakura, your AI assistant. You can ask me anything — like what I'd recommend or what's new on the menu.",
+};
+
+export default function AskPage() {
   const [userMessage, setUserMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [isLoading, setIsLoading] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleSend = async () => {
-    if (!userMessage.trim()) {
+    if (!userMessage.trim() || isLoading) {
       return;
     }
 
-    const currentMessage = userMessage;
+    const currentMessage = userMessage.trim();
 
-    const newUserMessage: Message = {
-      role: "user",
-      content: currentMessage,
-    };
-
-    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+    setMessages((prev) => [...prev, { role: "user", content: currentMessage }]);
     setUserMessage("");
     setIsLoading(true);
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: currentMessage,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: currentMessage }),
       });
 
       const text = await response.text();
 
       if (!text) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
+        setMessages((prev) => [
+          ...prev,
           {
             role: "assistant",
             content:
-              "No response from the API. Check your Terminal for backend errors.",
+              "No response from the API. Check your terminal for backend errors.",
           },
         ]);
         return;
@@ -76,31 +93,27 @@ export default function Home() {
       const data = JSON.parse(text);
 
       if (!response.ok) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
+        setMessages((prev) => [
+          ...prev,
           {
             role: "assistant",
-            content: data.error || "Something went wrong with the API.",
+            content: data.error || "Something went wrong. Please try again.",
           },
         ]);
         return;
       }
 
-      const newAiMessage: Message = {
-        role: "assistant",
-        content: data.reply,
-      };
-
-      setMessages((prevMessages) => [...prevMessages, newAiMessage]);
-    } catch (error) {
-      console.error(error);
-
-      setMessages((prevMessages) => [
-        ...prevMessages,
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.reply },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
         {
           role: "assistant",
           content:
-            "Something went wrong. Check the browser console and Terminal.",
+            "Something went wrong. Check the browser console and terminal.",
         },
       ]);
     } finally {
@@ -109,99 +122,139 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-orange-50 p-10">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-5xl font-bold text-orange-600 mb-4">
-          Sakura Bloom Matcha
+    <main className="bg-[#1F1814] text-[#F7F3ED]">
+      {/* Hero */}
+      <section
+        className="relative flex h-72 items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop')",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/50" />
+        <h1 className="relative z-10 text-5xl font-serif font-bold text-white">
+          Ask Sakura
         </h1>
+      </section>
 
-        <p className="text-gray-700 mb-10">
-          AI-powered matcha café assistant
-        </p>
+      {/* AI Assistant */}
+      <section className="mx-auto max-w-6xl px-8 py-20">
+        <h2 className="mb-8 text-4xl font-serif text-white">
+          Ask Our AI Assistant
+        </h2>
 
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h2 className="text-2xl font-semibold mb-4">
-            Ask Our AI Assistant
-          </h2>
+        <div className="overflow-hidden rounded-3xl bg-[#F7F3F0]">
+          <div className="h-3 bg-[#E8D5D2]" />
 
-          <input
-            type="text"
-            placeholder="Ask about drinks, desserts, or recommendations..."
-            value={userMessage}
-            onChange={(e) => setUserMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSend();
-              }
-            }}
-            className="w-full p-3 border rounded-xl mb-4"
-          />
-
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="bg-orange-500 text-white px-6 py-3 rounded-xl disabled:opacity-50"
-          >
-            {isLoading ? "Thinking..." : "Send"}
-          </button>
-
-          <div className="mt-6 space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={
-                  message.role === "user"
-                    ? "bg-orange-500 text-white p-4 rounded-2xl max-w-[70%] ml-auto"
-                    : "bg-orange-100 text-gray-900 p-4 rounded-2xl max-w-[70%]"
-                }
-              >
-                {message.content}
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className="bg-orange-100 text-gray-900 p-4 rounded-2xl max-w-[70%]">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    AI is thinking
-                  </span>
-
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-4">
-              Recommended Items
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {recommendedItems.map((item, index) => (
+          <div className="flex min-h-[320px] flex-col p-8 md:p-10">
+            <div className="flex-1 space-y-6">
+              {messages.map((message, index) => (
                 <div
                   key={index}
-                  className="border border-orange-100 rounded-2xl p-4 bg-orange-50"
+                  className={
+                    message.role === "user"
+                      ? "ml-auto max-w-[75%]"
+                      : "mr-auto max-w-[85%]"
+                  }
                 >
-                  <h4 className="font-semibold text-orange-700">
-                    {item.name}
-                  </h4>
-
-                  <p className="font-bold mt-1">{item.price}</p>
-
-                  <p className="text-sm text-gray-600 mt-2">
-                    {item.description}
+                  <p
+                    className={`rounded-2xl px-5 py-4 font-serif text-[#1F1814] leading-relaxed ${
+                      message.role === "user"
+                        ? "bg-[#E8D5D2]"
+                        : "bg-[#C1C8BC]"
+                    }`}
+                  >
+                    {message.content}
                   </p>
                 </div>
               ))}
+
+              {isLoading && (
+                <div className="mr-auto max-w-[85%]">
+                  <p className="rounded-2xl bg-[#C1C8BC] px-5 py-4 font-serif text-[#1F1814]">
+                    Sakura is thinking…
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8 flex gap-4">
+              <input
+                type="text"
+                placeholder="Ask about drinks, desserts, or recommendations..."
+                value={userMessage}
+                onChange={(e) => setUserMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSend();
+                  }
+                }}
+                className="flex-1 rounded-xl bg-white px-5 py-4 font-serif text-[#1F1814] outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={isLoading}
+                className="rounded-xl bg-[#E8D5D2] px-8 py-4 font-serif text-lg text-[#1F1814] transition hover:bg-[#dcc4c0] disabled:opacity-50"
+              >
+                {isLoading ? "…" : "Send"}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mx-auto max-w-6xl px-8 pb-28">
+        <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
+          <div>
+            <h2 className="mb-6 text-4xl font-serif text-white">
+              Frequently Asked Questions
+            </h2>
+            <p className="mb-10 font-serif text-lg leading-relaxed text-white/90">
+              If you have further questions, don&apos;t hesitate to reach out to
+              us.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-block rounded-xl bg-[#C1C8BC] px-8 py-4 font-serif text-lg text-[#1F1814] transition hover:bg-[#b0b8a8]"
+            >
+              Contact Us
+            </Link>
+          </div>
+
+          <div className="overflow-hidden rounded-3xl bg-[#F7F3F0] text-[#1F1814]">
+            {faqItems.map((item, index) => {
+              const isOpen = openFaq === index;
+
+              return (
+                <div key={item.question}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : index)}
+                    className="flex w-full items-center justify-between gap-4 px-8 py-6 text-left font-serif"
+                  >
+                    <span className="text-lg">{item.question}</span>
+                    <span className="shrink-0 text-2xl text-[#E8D5D2]">
+                      {isOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <p className="border-t border-[#E8D5D2]/60 px-8 pb-6 font-serif leading-relaxed text-[#4A3A32]">
+                      {item.answer}
+                    </p>
+                  )}
+
+                  {index < faqItems.length - 1 && (
+                    <hr className="border-[#E8D5D2]/60" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

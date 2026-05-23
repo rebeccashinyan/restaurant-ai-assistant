@@ -1,111 +1,136 @@
 export default function ContactPage() {
-    return (
-      <main className="min-h-screen bg-[#fffaf2] px-8 py-20">
-        <section className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[0.8fr_1.2fr]">
+  return (
+    <main className="bg-[#1F1814] text-[#F7F3ED]">
+      {/* Hero */}
+      <section
+        className="relative flex h-72 items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop')",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/50" />
+        <h1 className="relative z-10 text-5xl font-serif font-bold text-white">
+          Contact Us
+        </h1>
+      </section>
+
+      {/* Contact content */}
+      <section className="mx-auto max-w-6xl px-8 py-20">
+        <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
+          {/* Form */}
           <div>
-  
-            <div className="max-w-md">
-                <h1 className="mb-6 text-6xl font-bold uppercase leading-tight text-zinc-950">
-                    Contact Us
-                </h1>
+            <h2 className="mb-8 text-4xl font-serif text-white">
+              Send Us a Message
+            </h2>
 
-                <p className="mb-8 text-lg leading-relaxed text-zinc-700">
-                    We’ll get back to you within 24 hours.
-                </p>
-
-                <div className="space-y-4 text-zinc-800">
-                    <div>
-                    <p className="mb-1 text-xl font-semibold uppercase tracking-wide text-orange-700">
-                        Phone
-                    </p>
-
-                    <p className="text-2xl">(212) 555-2038</p>
-                    </div>
-
-                    <div>
-                    <p className="mb-1 text-xl font-semibold uppercase tracking-wide text-orange-700">
-                        Email
-                    </p>
-
-                    <p className="text-2xl">hello@sakurabloommatcha.com</p>
-                    </div>
+            <form className="rounded-3xl bg-[#E8E3D9] p-10 text-[#4A3A32] md:p-12">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="mb-2 block font-serif text-lg"
+                  >
+                    Your Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    className="w-full rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
+                  />
                 </div>
-                </div>
-          </div>
-          
-  
-          <form className="rounded-2xl bg-[#e9e5dc] p-8 md:p-12">
-            <p className="mb-8 text-3xl font-bold leading-relaxed text-zinc-700">
-                Send Us a Message
-            </p>
 
-            <div className="grid gap-8 md:grid-cols-2">
-              <div>
-                <label className="mb-3 block text-sm font-semibold uppercase text-zinc-900">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Jane Smith"
-                  className="w-full rounded-xl bg-white px-5 py-5 text-zinc-900 outline-none"
-                />
+                <div>
+                  <label
+                    htmlFor="inquiry-type"
+                    className="mb-2 block font-serif text-lg"
+                  >
+                    Inquiry Type
+                  </label>
+                  <select
+                    id="inquiry-type"
+                    defaultValue=""
+                    className="w-full rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
+                  >
+                    <option value="" disabled>
+                      Select...
+                    </option>
+                    <option>Menu Question</option>
+                    <option>Store Information</option>
+                    <option>Event Inquiry</option>
+                    <option>Feedback</option>
+                  </select>
+                </div>
               </div>
-  
-              <div>
-                <label className="mb-3 block text-sm font-semibold uppercase text-zinc-900">
+
+              <div className="mt-6">
+                <label
+                  htmlFor="email"
+                  className="mb-2 block font-serif text-lg"
+                >
                   Email Address
                 </label>
                 <input
+                  id="email"
                   type="email"
-                  placeholder="jane@email.com"
-                  className="w-full rounded-xl bg-white px-5 py-5 text-zinc-900 outline-none"
+                  className="w-full rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
                 />
               </div>
-  
-              <div>
-                <label className="mb-3 block text-sm font-semibold uppercase text-zinc-900">
-                  Subject
+
+              <div className="mt-6">
+                <label
+                  htmlFor="message"
+                  className="mb-2 block font-serif text-lg"
+                >
+                  Message
                 </label>
-                <input
-                  type="text"
-                  placeholder="Question about Sakura Bloom"
-                  className="w-full rounded-xl bg-white px-5 py-5 text-zinc-900 outline-none"
+                <textarea
+                  id="message"
+                  rows={8}
+                  className="w-full resize-none rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
                 />
               </div>
-  
+
+              <button
+                type="submit"
+                className="mt-8 w-full rounded-xl bg-[#1F1814] px-6 py-4 font-serif text-lg text-[#F7F3ED] transition hover:bg-[#4A3A32]"
+              >
+                Send Message
+              </button>
+            </form>
+          </div>
+
+          {/* Contact details */}
+          <div className="font-serif lg:pt-20">
+            <div className="space-y-8">
               <div>
-                <label className="mb-3 block text-sm font-semibold uppercase text-zinc-900">
-                  Inquiry Type
-                </label>
-                <select className="w-full rounded-xl bg-white px-5 py-5 text-zinc-500 outline-none">
-                  <option>Select...</option>
-                  <option>Menu Question</option>
-                  <option>Store Information</option>
-                  <option>Event Inquiry</option>
-                  <option>Feedback</option>
-                </select>
+                <p className="mb-2 text-xl font-bold text-white">Phone</p>
+                <p className="text-lg text-white/90">(212) 555-2038</p>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xl font-bold text-white">Email</p>
+                <p className="text-lg text-white/90">
+                  hello@sakurabloommatcha.com
+                </p>
               </div>
             </div>
-  
-            <div className="mt-8">
-              <label className="mb-3 block text-sm font-semibold uppercase text-zinc-900">
-                Message
-              </label>
-              <textarea
-                placeholder="Enter your message here"
-                rows={7}
-                className="w-full resize-none rounded-xl bg-white px-5 py-5 text-zinc-900 outline-none"
-              />
+
+            <hr className="my-10 border-white/30" />
+
+            <div>
+              <p className="mb-4 text-xl font-bold text-white">
+                Opening Hours
+              </p>
+              <p className="text-lg leading-relaxed text-white/90">
+                Mon – Fri: 8AM – 8PM
+                <br />
+                Sat – Sun: 9AM – 9PM
+              </p>
             </div>
-  
-            <button
-              type="submit"
-              className="mt-8 w-full rounded-xl bg-zinc-950 px-6 py-5 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600"
-            >
-              Send Message
-            </button>
-          </form>
-        </section>
-      </main>
-    );
-  }
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
