@@ -17,6 +17,27 @@
     serif;
   --font-sans: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman",
     serif;
+
+  --animate-gallery-left: gallery-left 50s linear infinite;
+  --animate-gallery-right: gallery-right 55s linear infinite;
+
+  @keyframes gallery-left {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  @keyframes gallery-right {
+    from {
+      transform: translate3d(-50%, 0, 0);
+    }
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
 }
 
 body {
@@ -25,29 +46,7 @@ body {
   font-family: var(--font-serif);
 }
 
-@keyframes gallery-scroll-left {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-.gallery-marquee-track {
-  display: flex;
-  width: max-content;
-  gap: 2.5rem;
-  animation: gallery-scroll-left 30s linear infinite;
-  will-change: transform;
-}
-
-.gallery-marquee-track--reverse {
-  animation-direction: reverse;
-}
-
 @layer components {
-  /* Figma frame: 1440px with 40px side gutters → 1360px content */
   .page-shell {
     width: 100%;
     max-width: var(--page-max);
@@ -61,9 +60,15 @@ body {
     margin-inline: auto;
   }
 
-  /* Nav: full viewport width, links flush left / brand flush right */
   .nav-shell {
     width: 100%;
     padding-inline: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .gallery-marquee-row {
+    display: flex;
+    width: max-content;
+    gap: 2.5rem;
+    will-change: transform;
   }
 }

@@ -15,11 +15,13 @@ function MarqueeRow({
 
   return (
     <div
-      className={`overflow-hidden py-3 ${offset ? "-ml-[120px] md:-ml-[220px]" : ""}`}
+      className={`overflow-hidden py-3 ${
+        offset ? "-ml-[120px] md:-ml-[220px]" : ""
+      }`}
     >
       <div
-        className={`gallery-marquee-track ${
-          direction === "right" ? "gallery-marquee-track--reverse" : ""
+        className={`gallery-marquee-row ${
+          direction === "right" ? "animate-gallery-right" : "animate-gallery-left"
         }`}
       >
         {track.map((image, index) => (
