@@ -43,7 +43,8 @@ const aboutSections = [
   
           <div className="absolute inset-0 bg-black/50" />
   
-          <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="page-shell relative z-10">
+            <div className="content-width text-center">
             <p className="mb-4 text-sm font-semibold uppercase tracking-[0.35em] text-[#f2c9a8]">
               About Sakura Bloom
             </p>
@@ -52,15 +53,16 @@ const aboutSections = [
               A Modern Matcha Story
             </h1>
   
-            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-white/75">
+            <p className="text-lg leading-relaxed text-white/75">
               A modern matcha store inspired by quiet beauty, seasonal rituals,
               and thoughtful moments.
             </p>
+            </div>
           </div>
         </section>
   
-        <section className="mx-auto max-w-7xl px-8 py-24">
-          <div className="space-y-28">
+        <section className="page-shell py-24">
+          <div className="content-width space-y-28">
             {aboutSections.map((section, index) => (
               <div
                 key={section.title}

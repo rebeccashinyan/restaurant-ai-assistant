@@ -1,42 +1,27 @@
+import PageHero from "../components/page-hero";
+
 export default function ContactPage() {
   return (
     <main className="bg-[#1F1814] text-[#F7F3ED]">
-      {/* Hero */}
-      <section
-        className="relative flex h-72 items-center justify-center bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop')",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/50" />
-        <h1 className="relative z-10 text-5xl font-serif font-bold text-white">
-          Contact Us
-        </h1>
-      </section>
+      <PageHero title="Contact Us" />
 
-      {/* Contact content */}
-      <section className="mx-auto max-w-6xl px-8 py-20">
+      <section className="page-shell py-20">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
-          {/* Form */}
           <div>
-            <h2 className="mb-8 text-4xl font-serif text-white">
+            <h2 className="mb-8 font-serif text-4xl text-white">
               Send Us a Message
             </h2>
 
             <form className="rounded-3xl bg-[#E8E3D9] p-10 text-[#4A3A32] md:p-12">
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
-                  <label
-                    htmlFor="name"
-                    className="mb-2 block font-serif text-lg"
-                  >
+                  <label htmlFor="name" className="mb-2 block font-serif text-lg">
                     Your Name
                   </label>
                   <input
                     id="name"
                     type="text"
-                    className="w-full rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
+                    className="w-full rounded-xl bg-white px-4 py-3 text-[#1F1814] outline-none"
                   />
                 </div>
 
@@ -50,7 +35,7 @@ export default function ContactPage() {
                   <select
                     id="inquiry-type"
                     defaultValue=""
-                    className="w-full rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
+                    className="w-full rounded-xl bg-white px-4 py-3 text-[#1F1814] outline-none"
                   >
                     <option value="" disabled>
                       Select...
@@ -64,30 +49,24 @@ export default function ContactPage() {
               </div>
 
               <div className="mt-6">
-                <label
-                  htmlFor="email"
-                  className="mb-2 block font-serif text-lg"
-                >
+                <label htmlFor="email" className="mb-2 block font-serif text-lg">
                   Email Address
                 </label>
                 <input
                   id="email"
                   type="email"
-                  className="w-full rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
+                  className="w-full rounded-xl bg-white px-4 py-3 text-[#1F1814] outline-none"
                 />
               </div>
 
               <div className="mt-6">
-                <label
-                  htmlFor="message"
-                  className="mb-2 block font-serif text-lg"
-                >
+                <label htmlFor="message" className="mb-2 block font-serif text-lg">
                   Message
                 </label>
                 <textarea
                   id="message"
                   rows={8}
-                  className="w-full resize-none rounded-xl bg-white px-4 py-3 font-sans text-[#1F1814] outline-none"
+                  className="w-full resize-none rounded-xl bg-white px-4 py-3 text-[#1F1814] outline-none"
                 />
               </div>
 
@@ -100,7 +79,6 @@ export default function ContactPage() {
             </form>
           </div>
 
-          {/* Contact details */}
           <div className="font-serif lg:pt-20">
             <div className="space-y-8">
               <div>
@@ -119,9 +97,7 @@ export default function ContactPage() {
             <hr className="my-10 border-white/30" />
 
             <div>
-              <p className="mb-4 text-xl font-bold text-white">
-                Opening Hours
-              </p>
+              <p className="mb-4 text-xl font-bold text-white">Opening Hours</p>
               <p className="text-lg leading-relaxed text-white/90">
                 Mon – Fri: 8AM – 8PM
                 <br />

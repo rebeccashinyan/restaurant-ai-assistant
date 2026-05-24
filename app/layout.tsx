@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Playfair_Display } from "next/font/google";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
 
 export const metadata: Metadata = {
   title: "Sakura Bloom Matcha",
@@ -13,14 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-[#1F1814] text-[#F7F3ED]">
+    <html lang="en" className={playfair.variable}>
+      <body className="bg-[#1F1814] font-serif text-[#F7F3ED]">
         
         {/* Navbar */}
-        <nav className="sticky top-0 z-50 bg-black text-white">
-          <div className="mx-auto flex max-w-[1600px] items-center justify-between px-8 py-6">
+        <nav className="sticky top-0 z-50 w-full bg-black text-white">
+          <div className="nav-shell flex items-center justify-between py-6">
             
-            <div className="flex gap-10 text-2xl font-serif">
+            <div className="flex flex-wrap gap-6 text-xl font-serif md:gap-10 md:text-2xl">
               <Link href="/">Home</Link>
               <Link href="/menu">Menu</Link>
               <Link href="/visit">Visit Us</Link>
@@ -39,8 +45,8 @@ export default function RootLayout({
         {children}
 
         {/* Footer */}
-        <footer className="bg-[#E4DBCA] px-10 py-28 text-[#1F1814]">
-          <div className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 gap-20">
+        <footer className="bg-[#E4DBCA] py-28 text-[#1F1814]">
+          <div className="page-shell grid grid-cols-1 gap-20 md:grid-cols-2">
 
             <div>
               <h3 className="mb-4 text-4xl font-serif">

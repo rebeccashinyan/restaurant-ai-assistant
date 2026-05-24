@@ -1,34 +1,34 @@
+import PageHero from "../components/page-hero";
+
 function MenuBlock({
   image,
   alt,
   imageSide = "left",
-  imageClassName = "",
   children,
 }: {
   image: string;
   alt: string;
   imageSide?: "left" | "right";
-  imageClassName?: string;
   children: React.ReactNode;
 }) {
   const imageEl = (
     <div
-      className={`relative z-0 w-full shrink-0 md:w-[42%] md:max-w-[400px] ${
-        imageSide === "right" ? "md:-ml-20" : ""
+      className={`relative z-0 w-full shrink-0 md:w-[600px] ${
+        imageSide === "right" ? "md:-ml-24" : ""
       }`}
     >
       <img
         src={image}
         alt={alt}
-        className={`h-[300px] w-full rounded-2xl object-cover md:h-[360px] ${imageClassName}`}
+        className="h-[320px] w-full rounded-2xl object-cover md:h-[480px]"
       />
     </div>
   );
 
   const cardEl = (
     <div
-      className={`relative z-10 w-full flex-1 rounded-2xl bg-[#E4DBCA] p-10 text-[#1F1814] md:p-12 ${
-        imageSide === "left" ? "md:-ml-20" : ""
+      className={`relative z-10 min-w-0 flex-1 rounded-2xl bg-[#E4DBCA] p-10 text-[#1F1814] md:p-12 ${
+        imageSide === "left" ? "md:-ml-24" : ""
       }`}
     >
       {children}
@@ -36,20 +36,18 @@ function MenuBlock({
   );
 
   return (
-    <div className="mx-auto w-full max-w-[920px]">
-      <div className="flex flex-col gap-6 md:flex-row md:items-center">
-        {imageSide === "left" ? (
-          <>
-            {imageEl}
-            {cardEl}
-          </>
-        ) : (
-          <>
-            {cardEl}
-            {imageEl}
-          </>
-        )}
-      </div>
+    <div className="flex flex-col gap-6 md:flex-row md:items-center">
+      {imageSide === "left" ? (
+        <>
+          {imageEl}
+          {cardEl}
+        </>
+      ) : (
+        <>
+          {cardEl}
+          {imageEl}
+        </>
+      )}
     </div>
   );
 }
@@ -57,27 +55,13 @@ function MenuBlock({
 export default function MenuPage() {
   return (
     <main className="bg-[#1F1814] text-[#F7F3ED]">
-      {/* Hero */}
-      <section
-        className="relative flex h-64 items-center justify-center bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop')",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/45" />
-        <h1 className="relative z-10 text-5xl font-serif font-bold">
-          Our Menu
-        </h1>
-      </section>
+      <PageHero title="Our Menu" />
 
-      {/* Menu Content */}
-      <section className="mx-auto max-w-6xl space-y-24 px-8 py-24">
+      <section className="page-shell space-y-24 py-24">
         <MenuBlock
           image="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop"
           alt="Matcha drink"
           imageSide="left"
-          imageClassName="md:max-w-[560px] md:h-[560px]"
         >
           <h2 className="mb-8 text-4xl font-serif">Signature Drinks</h2>
 

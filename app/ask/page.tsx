@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import PageHero from "../components/page-hero";
 
 type Message = {
   role: "user" | "assistant";
@@ -123,23 +124,11 @@ export default function AskPage() {
 
   return (
     <main className="bg-[#1F1814] text-[#F7F3ED]">
-      {/* Hero */}
-      <section
-        className="relative flex h-72 items-center justify-center bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop')",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/50" />
-        <h1 className="relative z-10 text-5xl font-serif font-bold text-white">
-          Ask Sakura
-        </h1>
-      </section>
+      <PageHero title="Ask Sakura" />
 
       {/* AI Assistant */}
-      <section className="mx-auto max-w-6xl px-8 py-20">
-        <h2 className="mb-8 text-4xl font-serif text-white">
+      <section className="page-shell py-20">
+        <h2 className="mb-8 font-serif text-4xl text-white">
           Ask Our AI Assistant
         </h2>
 
@@ -205,7 +194,7 @@ export default function AskPage() {
       </section>
 
       {/* FAQ */}
-      <section className="mx-auto max-w-6xl px-8 pb-28">
+      <section className="page-shell pb-28">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
           <div>
             <h2 className="mb-6 text-4xl font-serif text-white">
