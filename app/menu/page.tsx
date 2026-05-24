@@ -2,11 +2,13 @@ function MenuBlock({
   image,
   alt,
   imageSide = "left",
+  imageClassName = "",
   children,
 }: {
   image: string;
   alt: string;
   imageSide?: "left" | "right";
+  imageClassName?: string;
   children: React.ReactNode;
 }) {
   const imageEl = (
@@ -18,7 +20,7 @@ function MenuBlock({
       <img
         src={image}
         alt={alt}
-        className="h-[300px] w-full rounded-2xl object-cover md:h-[360px]"
+        className={`h-[300px] w-full rounded-2xl object-cover md:h-[360px] ${imageClassName}`}
       />
     </div>
   );
@@ -75,6 +77,7 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop"
           alt="Matcha drink"
           imageSide="left"
+          imageClassName="md:max-w-[560px] md:h-[560px]"
         >
           <h2 className="mb-8 text-4xl font-serif">Signature Drinks</h2>
 
