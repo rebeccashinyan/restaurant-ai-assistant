@@ -1,3 +1,6 @@
+import ReviewsSection from "./components/reviews-section";
+import GallerySection from "./components/gallery-section";
+
 const heroImage =
   "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=2000&auto=format&fit=crop";
 
@@ -9,12 +12,6 @@ const storyImage =
 
 const missionImage =
   "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=1200&auto=format&fit=crop";
-
-const reviewImages = [
-  "https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1470337458703-46ad1756c187?q=80&w=600&auto=format&fit=crop",
-];
 
 const galleryImages = [
   "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=840&h=576&fit=crop",
@@ -32,10 +29,10 @@ const galleryImages = [
 export default function Home() {
   return (
     <main className="bg-[#1F1814] text-[#F7F3ED]">
-      {/* Hero */}
-      <section className="page-shell pt-6">
+      {/* Hero — full viewport width, edge to edge */}
+      <section className="w-full pt-4 md:pt-6">
         <div
-          className="relative h-[72vh] overflow-hidden rounded-b-2xl bg-cover bg-center"
+          className="relative h-[72vh] w-full overflow-hidden bg-cover bg-center"
           style={{ backgroundImage: `url('${heroImage}')` }}
         >
           <div className="absolute inset-0 bg-black/30" />
@@ -127,72 +124,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Reviews */}
-      <section className="page-shell py-24">
-        <h2 className="mb-4 font-serif text-4xl md:text-5xl">Users Review</h2>
-        <p className="mb-14 font-serif text-3xl uppercase tracking-wide md:text-5xl">
-          20K+ Happy Users Says About Our Product
-        </p>
+      <ReviewsSection />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[2.3fr_0.7fr]">
-          <div className="rounded-3xl bg-[#F7F3ED] p-12 text-[#1F1814]">
-            <p className="mb-28 font-serif text-2xl leading-relaxed">
-              “One of the most calming cafés I’ve been to in NYC. The interior
-              feels so intentional and peaceful, and the matcha quality is
-              actually amazing — not overly sweet like most places. I ordered
-              the Strawberry Sakura Matcha and the Sakura Nerikiri, and both
-              looked almost too pretty to eat.”
-            </p>
-            <p className="font-serif text-lg">Emily R.</p>
-            <p className="font-serif text-lg">Creative Director</p>
-          </div>
-
-          <div className="grid gap-6">
-            {reviewImages.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Customer photo ${index + 1}`}
-                className="h-40 w-full rounded-3xl object-cover md:h-auto md:min-h-[140px]"
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery */}
-      <section className="page-shell overflow-hidden py-24">
-        <h2 className="mb-14 font-serif text-4xl md:text-5xl">Our Gallery</h2>
-
-        <div className="flex gap-10 overflow-x-auto pb-8">
-          {galleryImages.map((image, index) => (
-            <img
-              key={`gallery-top-${index}`}
-              src={image}
-              alt={`Sakura Bloom gallery ${index + 1}`}
-              width={420}
-              height={288}
-              className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
-            />
-          ))}
-        </div>
-
-        <div className="flex gap-10 overflow-x-auto">
-          {galleryImages
-            .slice()
-            .reverse()
-            .map((image, index) => (
-              <img
-                key={`gallery-bottom-${index}`}
-                src={image}
-                alt={`Sakura Bloom gallery ${galleryImages.length - index}`}
-                width={420}
-                height={288}
-                className="h-72 w-[420px] shrink-0 rounded-2xl object-cover"
-              />
-            ))}
-        </div>
-      </section>
+      <GallerySection images={galleryImages} />
     </main>
   );
 }
