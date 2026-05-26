@@ -1,5 +1,7 @@
-import ReviewsSection from "./components/reviews-section";
+import FadeUp from "./components/fade-up";
 import GallerySection from "./components/gallery-section";
+import ParallaxImage from "./components/parallax-image";
+import ReviewsSection from "./components/reviews-section";
 
 const heroImage =
   "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=2000&auto=format&fit=crop";
@@ -45,7 +47,7 @@ export default function Home() {
       {/* Meaning */}
       <section className="page-shell py-28">
         <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2 md:gap-20">
-          <div>
+          <FadeUp>
             <h2 className="mb-8 font-serif text-4xl md:text-5xl">
               What Does Sakura Bloom Mean?
             </h2>
@@ -60,12 +62,11 @@ export default function Home() {
               To us, Sakura Bloom is more than just a matcha store. It’s a space
               designed to feel calm, comforting, and intentional.
             </p>
-          </div>
+          </FadeUp>
 
-          <img
+          <ParallaxImage
             src={meaningImage}
             alt="Cherry blossoms at Sakura Bloom"
-            className="h-[480px] w-full rounded-2xl object-cover"
           />
         </div>
       </section>
@@ -73,13 +74,9 @@ export default function Home() {
       {/* Story */}
       <section className="page-shell py-20">
         <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2 md:gap-20">
-          <img
-            src={storyImage}
-            alt="Matcha latte at Sakura Bloom"
-            className="h-[480px] w-full rounded-2xl object-cover"
-          />
+          <ParallaxImage src={storyImage} alt="Matcha latte at Sakura Bloom" />
 
-          <div>
+          <FadeUp>
             <h2 className="mb-8 font-serif text-4xl md:text-5xl">Our Story</h2>
             <p className="mb-6 text-lg leading-relaxed text-[#E6E2DD]">
               Sakura Bloom Matcha began with a simple idea: creating a modern
@@ -95,14 +92,14 @@ export default function Home() {
               Every drink, dessert, and detail is carefully designed to create a
               feeling — soft, warm, and memorable.
             </p>
-          </div>
+          </FadeUp>
         </div>
       </section>
 
       {/* Mission */}
       <section className="page-shell py-28">
         <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2 md:gap-20">
-          <div>
+          <FadeUp>
             <h2 className="mb-8 font-serif text-4xl md:text-5xl">Our Mission</h2>
             <p className="mb-6 text-lg leading-relaxed text-[#E6E2DD]">
               At Sakura Bloom, our mission is to create moments of comfort and
@@ -114,13 +111,9 @@ export default function Home() {
               should be part of a lifestyle centered around balance, quality, and
               slowing down.
             </p>
-          </div>
+          </FadeUp>
 
-          <img
-            src={missionImage}
-            alt="Matcha preparation"
-            className="h-[480px] w-full rounded-2xl object-cover"
-          />
+          <ParallaxImage src={missionImage} alt="Matcha preparation" />
         </div>
       </section>
 
