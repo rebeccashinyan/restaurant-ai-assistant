@@ -50,7 +50,7 @@ const faqItems = [
 const welcomeMessage: Message = {
   role: "assistant",
   content:
-    "Hi! I'm Sakura, your AI assistant. You can ask me anything — like what I'd recommend or what's new on the menu.",
+    "Welcome to Sakura Bloom!\nFeel free to ask me anything about our matcha drinks, seasonal desserts, or personalized recommendations.",
 };
 
 export default function AskPage() {
@@ -142,12 +142,12 @@ export default function AskPage() {
                   key={index}
                   className={
                     message.role === "user"
-                      ? "ml-auto max-w-[75%]"
-                      : "mr-auto max-w-[85%]"
+                      ? "ml-auto w-fit max-w-[75%]"
+                      : "mr-auto w-fit max-w-[85%]"
                   }
                 >
                   <p
-                    className={`rounded-2xl px-5 py-4 font-serif text-[#1F1814] leading-relaxed ${
+                    className={`w-fit whitespace-pre-line rounded-2xl px-5 py-4 font-serif text-[#1F1814] leading-relaxed ${
                       message.role === "user"
                         ? "bg-[#E8D5D2]"
                         : "bg-[#C1C8BC]"
@@ -159,8 +159,8 @@ export default function AskPage() {
               ))}
 
               {isLoading && (
-                <div className="mr-auto max-w-[85%]">
-                  <p className="rounded-2xl bg-[#C1C8BC] px-5 py-4 font-serif text-[#1F1814]">
+                <div className="mr-auto w-fit max-w-[85%]">
+                  <p className="w-fit rounded-2xl bg-[#C1C8BC] px-5 py-4 font-serif text-[#1F1814]">
                     Sakura is thinking…
                   </p>
                 </div>
