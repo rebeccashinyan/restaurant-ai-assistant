@@ -6,8 +6,8 @@ export default function VisitPage() {
       <PageHero title="Visit Us" />
 
       <section className="page-shell py-20">
-        <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="space-y-10 font-serif lg:pt-4">
+        <div className="grid items-start gap-10 lg:grid-cols-[4fr_7fr] lg:gap-16">
+          <div className="min-w-0 space-y-10 font-serif lg:ml-auto lg:max-w-xs lg:pl-10 lg:pt-24">
             <div>
               <p className="mb-3 text-xl font-bold text-white">Address</p>
               <p className="text-lg leading-relaxed text-white/90">
@@ -27,7 +27,7 @@ export default function VisitPage() {
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <h2 className="mb-4 font-serif text-4xl text-white">
               Find Us on Google Maps
             </h2>

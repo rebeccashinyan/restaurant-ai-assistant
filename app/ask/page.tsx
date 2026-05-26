@@ -132,10 +132,10 @@ export default function AskPage() {
           Ask Our AI Assistant
         </h2>
 
-        <div className="overflow-hidden rounded-3xl bg-[#F7F3F0]">
-          <div className="h-3 bg-[#E8D5D2]" />
+        <div className="flex min-h-[420px] flex-col overflow-hidden rounded-3xl bg-[#F7F3F0] md:min-h-[480px]">
+          <div className="min-h-[72px] shrink-0 bg-[#E8D5D2] md:min-h-[88px]" />
 
-          <div className="flex min-h-[320px] flex-col p-8 md:p-10">
+          <div className="flex flex-1 flex-col p-8 md:p-10">
             <div className="flex-1 space-y-6">
               {messages.map((message, index) => (
                 <div
@@ -195,8 +195,8 @@ export default function AskPage() {
 
       {/* FAQ */}
       <section className="page-shell pb-28">
-        <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
-          <div>
+        <div className="grid gap-16 lg:grid-cols-[4fr_7fr] lg:items-start lg:gap-20">
+          <div className="min-w-0">
             <h2 className="mb-6 text-4xl font-serif text-white">
               Frequently Asked Questions
             </h2>
@@ -212,7 +212,7 @@ export default function AskPage() {
             </Link>
           </div>
 
-          <div className="overflow-hidden rounded-3xl bg-[#F7F3F0] text-[#1F1814]">
+          <div className="min-w-0 overflow-hidden rounded-3xl bg-[#F7F3F0] text-[#1F1814]">
             {faqItems.map((item, index) => {
               const isOpen = openFaq === index;
 
@@ -224,7 +224,7 @@ export default function AskPage() {
                     className="flex w-full items-center justify-between gap-4 px-8 py-6 text-left font-serif"
                   >
                     <span className="text-lg">{item.question}</span>
-                    <span className="shrink-0 text-2xl text-[#E8D5D2]">
+                    <span className="shrink-0 text-2xl text-[#C09F9D]">
                       {isOpen ? "−" : "+"}
                     </span>
                   </button>

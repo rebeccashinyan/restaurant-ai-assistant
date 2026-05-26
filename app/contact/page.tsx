@@ -6,8 +6,8 @@ export default function ContactPage() {
       <PageHero title="Contact Us" />
 
       <section className="page-shell py-20">
-        <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
-          <div>
+        <div className="grid gap-16 lg:grid-cols-[7fr_4fr] lg:items-start lg:gap-20">
+          <div className="min-w-0">
             <h2 className="mb-8 font-serif text-4xl text-white">
               Send Us a Message
             </h2>
@@ -79,7 +79,7 @@ export default function ContactPage() {
             </form>
           </div>
 
-          <div className="font-serif lg:pt-20">
+          <div className="min-w-0 font-serif lg:pt-20">
             <div className="space-y-8">
               <div>
                 <p className="mb-2 text-xl font-bold text-white">Phone</p>
