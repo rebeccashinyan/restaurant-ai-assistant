@@ -4,14 +4,24 @@ import { useEffect, useRef, useState } from "react";
 
 const PARALLAX_STRENGTH = 28;
 const FADE_OFFSET = 56;
+const IMAGE_OBSERVER = { threshold: 0.1, rootMargin: "0px 0px -20% 0px" } as const;
 
 type ParallaxImageProps = {
   src: string;
   alt: string;
   className?: string;
+  imageClassName?: string;
+  /** Delay after entering view before fade-up plays (ms) */
+  entryDelay?: number;
 };
 
-export default function ParallaxImage({ src, alt, className = "" }: ParallaxImageProps) {
+export default function ParallaxImage({
+  src,
+  alt,
+  className = "",
+  imageClassName = "h-[480px] w-full object-cover",
+  entryDelay = 0,
+}: ParallaxImageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [parallaxY, setParallaxY] = useState(0);
@@ -35,7 +45,7 @@ export default function ParallaxImage({ src, alt, className = "" }: ParallaxImag
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "0px 0px -6% 0px" },
+      IMAGE_OBSERVER,
     );
 
     observer.observe(el);
@@ -82,13 +92,16 @@ export default function ParallaxImage({ src, alt, className = "" }: ParallaxImag
         style={
           reducedMotion
             ? undefined
-            : { transform: `translate3d(0, ${y}px, 0)` }
+            : {
+                transform: `translate3d(0, ${y}px, 0)`,
+                transitionDelay: visible ? `${entryDelay}ms` : "0ms",
+              }
         }
       >
         <img
           src={src}
           alt={alt}
-          className="h-[480px] w-full object-cover"
+          className={imageClassName}
         />
       </div>
     </div>

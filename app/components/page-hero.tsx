@@ -1,3 +1,7 @@
+"use client";
+
+import FadeUp from "./fade-up";
+
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1600&auto=format&fit=crop";
 
@@ -8,9 +12,11 @@ export default function PageHero({ title }: { title: string }) {
       style={{ backgroundImage: `url('${HERO_IMAGE}')` }}
     >
       <div className="absolute inset-0 bg-black/50" />
-      <h1 className="relative z-10 font-serif text-5xl font-bold text-white md:text-6xl">
-        {title}
-      </h1>
+      <FadeUp variant="fadeIn" className="relative z-10">
+        <h1 className="font-serif text-5xl font-bold text-white md:text-6xl">
+          {title}
+        </h1>
+      </FadeUp>
     </section>
   );
 }

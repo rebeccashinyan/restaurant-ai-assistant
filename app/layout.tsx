@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Playfair_Display } from "next/font/google";
+import SocialLinks from "./components/social-links";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -75,11 +76,7 @@ export default function RootLayout({
                 Follow
               </h3>
 
-              <div className="flex gap-8">
-                <div className="h-16 w-16 rounded-full bg-[#D9D9D9]" />
-                <div className="h-16 w-16 rounded-full bg-[#D9D9D9]" />
-                <div className="h-16 w-16 rounded-full bg-[#D9D9D9]" />
-              </div>
+              <SocialLinks />
             </div>
 
           </div>

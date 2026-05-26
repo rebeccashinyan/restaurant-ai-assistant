@@ -1,56 +1,7 @@
+import MenuBlock from "../components/menu-block";
 import PageHero from "../components/page-hero";
 
-function MenuBlock({
-  image,
-  alt,
-  imageSide = "left",
-  children,
-}: {
-  image: string;
-  alt: string;
-  imageSide?: "left" | "right";
-  children: React.ReactNode;
-}) {
-  const imageEl = (
-    <div
-      className={`relative z-0 w-full shrink-0 md:w-[600px] ${
-        imageSide === "right" ? "md:-ml-24" : ""
-      }`}
-    >
-      <img
-        src={image}
-        alt={alt}
-        className="h-[320px] w-full rounded-2xl object-cover md:h-[480px]"
-      />
-    </div>
-  );
-
-  const cardEl = (
-    <div
-      className={`relative z-10 min-w-0 flex-1 rounded-2xl bg-[#E4DBCA] p-10 text-[#1F1814] md:p-12 ${
-        imageSide === "left" ? "md:-ml-24" : ""
-      }`}
-    >
-      {children}
-    </div>
-  );
-
-  return (
-    <div className="flex flex-col gap-6 md:flex-row md:items-center">
-      {imageSide === "left" ? (
-        <>
-          {imageEl}
-          {cardEl}
-        </>
-      ) : (
-        <>
-          {cardEl}
-          {imageEl}
-        </>
-      )}
-    </div>
-  );
-}
+const BLOCK_STAGGER_MS = 160;
 
 export default function MenuPage() {
   return (
@@ -62,6 +13,7 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop"
           alt="Matcha drink"
           imageSide="left"
+          delay={0}
         >
           <h2 className="mb-8 text-4xl font-serif">Signature Drinks</h2>
 
@@ -101,6 +53,7 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1579888944880-d98341245702?q=80&w=1200&auto=format&fit=crop"
           alt="Sakura desserts"
           imageSide="right"
+          delay={BLOCK_STAGGER_MS}
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Desserts</h2>
 
@@ -128,6 +81,7 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop"
           alt="Bloom soft serve"
           imageSide="left"
+          delay={BLOCK_STAGGER_MS * 2}
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Soft Serve</h2>
 
