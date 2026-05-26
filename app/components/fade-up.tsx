@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type FadeUpVariant = "text" | "heading" | "image" | "fadeIn";
+export type FadeUpVariant = "text" | "heading" | "image" | "fadeIn" | "heroReveal";
 
 /** Editorial stagger offsets (ms) — use with the `delay` prop */
 export const FADE_UP_STAGGER = {
@@ -54,6 +54,12 @@ const VARIANTS: Record<
     durationMs: 1100,
     threshold: 0.2,
     rootMargin: "0px 0px -15% 0px",
+  },
+  heroReveal: {
+    offsetHidden: "translate-y-8",
+    durationMs: 1300,
+    threshold: 0.15,
+    rootMargin: "0px 0px -12% 0px",
   },
 };
 
