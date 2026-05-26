@@ -72,4 +72,39 @@ body {
     gap: 2.5rem;
     will-change: transform;
   }
+
+}
+
+/* Sakura petals — global background (outside @layer for reliable keyframes) */
+.sakura-petal {
+  top: -10vh;
+  will-change: transform, opacity;
+  animation-name: sakura-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  box-shadow: 0 0 6px rgba(245, 220, 224, 0.15);
+}
+
+@keyframes sakura-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--sakura-opacity, 0.28);
+  }
+  90% {
+    opacity: var(--sakura-opacity, 0.28);
+  }
+  100% {
+    transform: translate3d(var(--sakura-drift, 24px), 110vh, 0)
+      rotate(var(--sakura-rotate-end, 200deg));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sakura-petals-layer {
+    display: none;
+  }
 }

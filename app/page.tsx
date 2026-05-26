@@ -30,7 +30,7 @@ const galleryImages = [
 
 export default function Home() {
   return (
-    <main className="bg-[#1F1814] text-[#F7F3ED]">
+    <main className="text-[#F7F3ED]">
       {/* Hero — full viewport width, edge to edge */}
       <section className="w-full pt-4 md:pt-6">
         <div

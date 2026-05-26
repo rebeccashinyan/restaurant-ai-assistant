@@ -123,7 +123,7 @@ export default function AskPage() {
   };
 
   return (
-    <main className="bg-[#1F1814] text-[#F7F3ED]">
+    <main className="text-[#F7F3ED]">
       <PageHero title="Ask Sakura" />
 
       {/* AI Assistant */}
@@ -133,7 +133,7 @@ export default function AskPage() {
         </h2>
 
         <div className="flex min-h-[420px] flex-col overflow-hidden rounded-3xl bg-[#F7F3F0] md:min-h-[480px]">
-          <div className="min-h-[72px] shrink-0 bg-[#E8D5D2] md:min-h-[88px]" />
+          <div className="min-h-[56px] shrink-0 bg-[#E8D5D2] md:min-h-[64px]" />
 
           <div className="flex flex-1 flex-col p-8 md:p-10">
             <div className="flex-1 space-y-6">

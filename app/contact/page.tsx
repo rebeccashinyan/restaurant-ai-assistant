@@ -2,7 +2,7 @@ import PageHero from "../components/page-hero";
 
 export default function ContactPage() {
   return (
-    <main className="bg-[#1F1814] text-[#F7F3ED]">
+    <main className="text-[#F7F3ED]">
       <PageHero title="Contact Us" />
 
       <section className="page-shell py-20">

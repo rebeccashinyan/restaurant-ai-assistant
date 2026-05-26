@@ -5,7 +5,7 @@ const BLOCK_STAGGER_MS = 160;
 
 export default function MenuPage() {
   return (
-    <main className="bg-[#1F1814] text-[#F7F3ED]">
+    <main className="text-[#F7F3ED]">
       <PageHero title="Our Menu" />
 
       <section className="page-shell space-y-24 py-24">

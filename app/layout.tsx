@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Playfair_Display } from "next/font/google";
+import SakuraPetals from "./components/SakuraPetals";
 import SocialLinks from "./components/social-links";
 import "./globals.css";
 
@@ -22,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={playfair.variable}>
       <body className="bg-[#1F1814] font-serif text-[#F7F3ED]">
-        
+        <SakuraPetals />
+
+        <div className="relative z-[2]">
         {/* Navbar */}
         <nav className="sticky top-0 z-50 w-full bg-black text-white">
           <div className="nav-shell flex items-center justify-between py-6">
@@ -81,6 +84,7 @@ export default function RootLayout({
 
           </div>
         </footer>
+        </div>
 
       </body>
     </html>
