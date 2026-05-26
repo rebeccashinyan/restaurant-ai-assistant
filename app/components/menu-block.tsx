@@ -20,7 +20,7 @@ export default function MenuBlock({
   children,
 }: MenuBlockProps) {
   const groupRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function MenuBlock({
     const syncReduced = () => {
       const reduced = media.matches;
       setReducedMotion(reduced);
-      if (reduced) setInView(true);
+      if (reduced) setRevealed(true);
     };
 
     syncReduced();
@@ -44,7 +44,10 @@ export default function MenuBlock({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setInView(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
       },
       { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
     );
@@ -79,18 +82,16 @@ export default function MenuBlock({
     </div>
   );
 
-  const isVisible = reducedMotion || inView;
-
   return (
     <div
       ref={groupRef}
-      className="flex flex-col gap-6 will-change-[opacity,transform] motion-reduce:transition-none md:flex-row md:items-center"
+      className="menu-reveal-float flex flex-col gap-6 will-change-[opacity,transform] motion-reduce:transition-none md:flex-row md:items-center"
       style={
         reducedMotion
           ? { opacity: 1, transform: "none" }
           : {
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible
+              opacity: revealed ? 1 : 0,
+              transform: revealed
                 ? "translate3d(0, 0, 0)"
                 : `translate3d(0, ${ENTER_OFFSET_PX}px, 0)`,
               transition: `opacity 3500ms ${REVEAL_EASE}, transform 10000ms ${REVEAL_EASE}`,
