@@ -1,8 +1,6 @@
 import MenuBlock from "../components/menu-block";
 import PageHero from "../components/page-hero";
 
-const BLOCK_STAGGER_MS = 160;
-
 export default function MenuPage() {
   return (
     <main className="text-[#F7F3ED]">
@@ -13,7 +11,6 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop"
           alt="Matcha drink"
           imageSide="left"
-          delay={0}
         >
           <h2 className="mb-8 text-4xl font-serif">Signature Drinks</h2>
 
@@ -53,7 +50,6 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1579888944880-d98341245702?q=80&w=1200&auto=format&fit=crop"
           alt="Sakura desserts"
           imageSide="right"
-          delay={BLOCK_STAGGER_MS}
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Desserts</h2>
 
@@ -81,7 +77,6 @@ export default function MenuPage() {
           image="https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop"
           alt="Bloom soft serve"
           imageSide="left"
-          delay={BLOCK_STAGGER_MS * 2}
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Soft Serve</h2>
 
