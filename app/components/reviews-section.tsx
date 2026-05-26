@@ -30,21 +30,19 @@ const reviews = [
 ];
 
 const CROSSFADE_MS = 280;
-const PROFILE_STAGGER_MS = 120;
+const PROFILE_STAGGER_MS = 140;
 
-function entranceClass(
-  inView: boolean,
-  reducedMotion: boolean,
-  withScale = false,
-) {
+function fadeUpClass(inView: boolean, reducedMotion: boolean) {
   if (reducedMotion || inView) {
-    return withScale
-      ? "translate-y-0 scale-100 opacity-100"
-      : "translate-y-0 opacity-100";
+    return "translate-y-0 opacity-100";
   }
-  return withScale
-    ? "translate-y-8 scale-[0.97] opacity-0"
-    : "translate-y-8 opacity-0";
+  return "translate-y-10 opacity-0";
+}
+
+function isSectionInViewport(el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  const vh = window.innerHeight;
+  return rect.top < vh * 0.88 && rect.bottom > vh * 0.08;
 }
 
 export default function ReviewsSection() {
@@ -68,17 +66,25 @@ export default function ReviewsSection() {
     const el = sectionRef.current;
     if (!el) return;
 
+    const reveal = () => setInView(true);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setInView(true);
+          reveal();
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "0px 0px -6% 0px" },
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
 
     observer.observe(el);
+
+    if (isSectionInViewport(el)) {
+      reveal();
+      observer.disconnect();
+    }
+
     return () => observer.disconnect();
   }, []);
 
@@ -102,10 +108,15 @@ export default function ReviewsSection() {
     [active, reducedMotion],
   );
 
+  const entranceClasses =
+    "will-change-[opacity,transform] transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none " +
+    fadeUpClass(inView, reducedMotion);
+
   return (
     <section ref={sectionRef} className="page-shell py-24">
       <div
-        className={`transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none ${entranceClass(inView, reducedMotion)}`}
+        className={entranceClasses}
+        style={inView && !reducedMotion ? { transitionDelay: "0ms" } : undefined}
       >
         <h2 className="mb-4 font-serif text-4xl md:text-5xl">Users Review</h2>
         <p className="mb-14 font-serif text-3xl uppercase tracking-wide md:text-5xl">
@@ -115,69 +126,73 @@ export default function ReviewsSection() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[2.3fr_0.7fr] md:items-stretch">
         <div
-          className={`flex min-h-[420px] flex-col rounded-3xl bg-[#F7F3ED] p-10 text-[#1F1814] transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none md:min-h-[480px] md:p-12 ${entranceClass(inView, reducedMotion, true)}`}
-          style={
-            reducedMotion || !inView ? undefined : { transitionDelay: "120ms" }
-          }
+          className={`min-w-0 ${entranceClasses}`}
+          style={inView && !reducedMotion ? { transitionDelay: "120ms" } : undefined}
         >
-          <div
-            className={`mb-12 flex flex-1 flex-col transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
-              contentVisible ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <p className="flex-1 font-serif text-xl leading-relaxed md:text-2xl">
-              &ldquo;{review.quote}&rdquo;
-            </p>
-          </div>
-          <div
-            className={`transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
-              contentVisible ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <p className="font-serif text-lg font-bold">{review.name}</p>
-            <p className="font-serif text-lg">{review.title}</p>
+          <div className="flex min-h-[420px] flex-col rounded-3xl bg-[#F7F3ED] p-10 text-[#1F1814] md:min-h-[480px] md:p-12">
+            <div
+              className={`mb-12 flex flex-1 flex-col transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+                contentVisible ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <p className="flex-1 font-serif text-xl leading-relaxed md:text-2xl">
+                &ldquo;{review.quote}&rdquo;
+              </p>
+            </div>
+            <div
+              className={`transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+                contentVisible ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <p className="font-serif text-lg font-bold">{review.name}</p>
+              <p className="font-serif text-lg">{review.title}</p>
+            </div>
           </div>
         </div>
 
         <div className="flex min-h-[420px] flex-col gap-4 md:min-h-[480px]">
           {reviews.map((item, index) => {
             const isActive = active === index;
-            const staggerDelay = 220 + index * PROFILE_STAGGER_MS;
+            const staggerDelay = 240 + index * PROFILE_STAGGER_MS;
 
             return (
-              <button
+              <div
                 key={item.name}
-                type="button"
-                onClick={() => selectReview(index)}
-                aria-pressed={isActive}
-                aria-label={`Read review from ${item.name}`}
-                className={`relative overflow-hidden rounded-3xl bg-[#E8E3D9] transition-[opacity,transform,box-shadow,min-height,flex] duration-200 ease-out motion-reduce:transition-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(0,0,0,0.2)] motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-none ${entranceClass(inView, reducedMotion)} ${
-                  isActive
-                    ? "z-10 min-h-[200px] flex-[2]"
-                    : "min-h-[100px] flex-1 opacity-80 hover:opacity-100"
-                }`}
+                className={`${entranceClasses} ${isActive ? "flex-[2]" : "flex-1"}`}
                 style={
-                  reducedMotion || !inView
-                    ? undefined
-                    : { transitionDelay: `${staggerDelay}ms` }
+                  inView && !reducedMotion
+                    ? { transitionDelay: `${staggerDelay}ms` }
+                    : undefined
                 }
               >
-                <img
-                  src={item.image}
-                  alt={`${item.name} at a café`}
-                  className="absolute inset-0 h-full w-full object-cover object-center"
-                />
-                <div
-                  className={
+                <button
+                  type="button"
+                  onClick={() => selectReview(index)}
+                  aria-pressed={isActive}
+                  aria-label={`Read review from ${item.name}`}
+                  className={`relative h-full w-full overflow-hidden rounded-3xl bg-[#E8E3D9] transition-[transform,box-shadow,min-height,opacity] duration-200 ease-out motion-reduce:transition-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(0,0,0,0.2)] motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-none ${
                     isActive
-                      ? "absolute inset-0 bg-black/15 transition-colors duration-200"
-                      : "absolute inset-0 bg-black/30 transition-colors duration-200"
-                  }
-                />
-                <span className="absolute bottom-4 left-4 font-serif text-sm text-white md:text-base">
-                  {item.name}
-                </span>
-              </button>
+                      ? "min-h-[200px]"
+                      : `min-h-[100px] ${inView ? "opacity-80 hover:opacity-100" : ""}`
+                  }`}
+                >
+                  <img
+                    src={item.image}
+                    alt={`${item.name} at a café`}
+                    className="absolute inset-0 h-full w-full object-cover object-center"
+                  />
+                  <div
+                    className={
+                      isActive
+                        ? "absolute inset-0 bg-black/15 transition-colors duration-200"
+                        : "absolute inset-0 bg-black/30 transition-colors duration-200"
+                    }
+                  />
+                  <span className="absolute bottom-4 left-4 font-serif text-sm text-white md:text-base">
+                    {item.name}
+                  </span>
+                </button>
+              </div>
             );
           })}
         </div>

@@ -20,6 +20,7 @@
 
   --animate-gallery-left: gallery-left 50s linear infinite;
   --animate-gallery-right: gallery-right 55s linear infinite;
+  --ease-premium-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   @keyframes gallery-left {
     from {

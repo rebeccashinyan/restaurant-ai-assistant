@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const PARALLAX_STRENGTH = 28;
-const FADE_OFFSET = 40;
+const FADE_OFFSET = 56;
 
 type ParallaxImageProps = {
   src: string;
@@ -76,7 +76,7 @@ export default function ParallaxImage({ src, alt, className = "" }: ParallaxImag
       className={`overflow-hidden rounded-2xl ${className}`}
     >
       <div
-        className={`transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none ${
+        className={`transition-[opacity,transform] duration-[1280ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
           visible || reducedMotion ? "opacity-100" : "opacity-0"
         }`}
         style={
