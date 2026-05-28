@@ -4,7 +4,7 @@ import PageHero from "../components/page-hero";
 export default function ContactPage() {
   return (
     <main className="text-[#F7F3ED]">
-      <PageHero title="Contact Us" titleVariant="heroReveal" />
+      <PageHero title="Contact Us" />
       <ContactSection />
     </main>
   );
