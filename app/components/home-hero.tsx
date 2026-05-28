@@ -11,7 +11,7 @@ export default function HomeHero() {
   const { imageTransform, imageTransition } = useHeroImageMotion(sectionRef);
 
   return (
-    <section className="w-full pt-4 md:pt-6">
+    <section className="w-full">
       <div
         ref={sectionRef}
         className="relative h-[72vh] w-full overflow-hidden"
