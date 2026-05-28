@@ -80,9 +80,9 @@ body {
   top: -10vh;
   will-change: transform, opacity;
   animation-name: sakura-fall;
-  animation-timing-function: linear;
+  animation-timing-function: cubic-bezier(0.42, 0.02, 0.58, 0.98);
   animation-iteration-count: infinite;
-  box-shadow: 0 0 6px rgba(245, 220, 224, 0.15);
+  box-shadow: 0 0 6px rgba(245, 220, 224, 0.12);
 }
 
 @keyframes sakura-fall {
@@ -90,10 +90,18 @@ body {
     transform: translate3d(0, -10vh, 0) rotate(0deg);
     opacity: 0;
   }
-  10% {
+  8% {
     opacity: var(--sakura-opacity, 0.28);
   }
-  90% {
+  35% {
+    transform: translate3d(calc(var(--sakura-drift, 24px) * 0.35), 38vh, 0)
+      rotate(calc(var(--sakura-rotate-end, 200deg) * 0.35));
+  }
+  65% {
+    transform: translate3d(calc(var(--sakura-drift, 24px) * -0.25), 72vh, 0)
+      rotate(calc(var(--sakura-rotate-end, 200deg) * 0.65));
+  }
+  88% {
     opacity: var(--sakura-opacity, 0.28);
   }
   100% {
@@ -109,6 +117,10 @@ body {
   }
 
   .hero-grain {
+    animation: none !important;
+  }
+
+  .visit-map-glow--pulse {
     animation: none !important;
   }
 }
@@ -146,5 +158,32 @@ body {
   }
   50% {
     opacity: 0;
+  }
+}
+
+/* Visit page — ambient map glow */
+.visit-map-glow {
+  background:
+    radial-gradient(
+      ellipse 85% 70% at 50% 55%,
+      rgba(232, 213, 210, 0.22) 0%,
+      rgba(228, 219, 202, 0.1) 42%,
+      rgba(31, 24, 20, 0) 72%
+    );
+  filter: blur(22px);
+  opacity: 0.65;
+}
+
+.visit-map-glow--pulse {
+  animation: visit-map-glow-pulse 9s ease-in-out infinite;
+}
+
+@keyframes visit-map-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.52;
+  }
+  50% {
+    opacity: 0.72;
   }
 }
