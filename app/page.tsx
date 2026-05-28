@@ -1,10 +1,8 @@
 import FadeUp, { FADE_UP_STAGGER } from "./components/fade-up";
 import GallerySection from "./components/gallery-section";
+import HomeHero from "./components/home-hero";
 import ParallaxImage from "./components/parallax-image";
 import ReviewsSection from "./components/reviews-section";
-
-const heroImage =
-  "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=2000&auto=format&fit=crop";
 
 const meaningImage =
   "https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=1200&auto=format&fit=crop";
@@ -31,18 +29,7 @@ const galleryImages = [
 export default function Home() {
   return (
     <main className="text-[#F7F3ED]">
-      {/* Hero — full viewport width, edge to edge */}
-      <section className="w-full pt-4 md:pt-6">
-        <div
-          className="relative h-[72vh] w-full overflow-hidden bg-cover bg-center"
-          style={{ backgroundImage: `url('${heroImage}')` }}
-        >
-          <div className="absolute inset-0 bg-black/30" />
-          <h1 className="absolute inset-0 flex items-center justify-center font-serif text-5xl text-[#F3E8E8] md:text-7xl">
-            Sakura Bloom Matcha
-          </h1>
-        </div>
-      </section>
+      <HomeHero />
 
       {/* Meaning */}
       <section className="page-shell py-28">

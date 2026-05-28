@@ -10,6 +10,8 @@ type RevealOnceProps = {
   children: React.ReactNode;
   className?: string;
   delay?: number;
+  /** Gently deepens shadow as the element becomes visible */
+  elevation?: boolean;
 };
 
 /** Fade-up once on scroll enter; locks in place afterward (no reverse / float). */
@@ -17,6 +19,7 @@ export default function RevealOnce({
   children,
   className = "",
   delay = 0,
+  elevation = false,
 }: RevealOnceProps) {
   const ref = useRef<HTMLDivElement>(null);
   const hasRevealedRef = useRef(false);
@@ -107,6 +110,26 @@ export default function RevealOnce({
     };
   };
 
+  const elevationStyle: CSSProperties | undefined =
+    elevation && !reducedMotion
+      ? {
+          boxShadow: isVisible
+            ? "0 14px 44px rgba(31, 24, 20, 0.11)"
+            : "0 4px 18px rgba(31, 24, 20, 0.04)",
+          transitionProperty: "box-shadow",
+          transitionDuration: `${REVEAL_DURATION_MS}ms`,
+          transitionTimingFunction: REVEAL_EASE,
+          transitionDelay: `${delay}ms`,
+        }
+      : undefined;
+
+  const content =
+    elevation && !reducedMotion ? (
+      <div style={elevationStyle}>{children}</div>
+    ) : (
+      children
+    );
+
   return (
     <div
       ref={ref}
@@ -114,7 +137,7 @@ export default function RevealOnce({
       className={className}
       style={motionStyle()}
     >
-      {children}
+      {content}
     </div>
   );
 }

@@ -108,3 +108,13 @@ body {
     display: none;
   }
 }
+
+@keyframes typing-cursor {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
