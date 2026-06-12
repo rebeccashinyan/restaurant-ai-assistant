@@ -1,12 +1,16 @@
 @import "tailwindcss";
 
+html {
+  font-size: 90%;
+}
+
 :root {
   --background: #1f1814;
   --foreground: #f7f3ed;
   --cream: #e4dbca;
   --cream-light: #e8e3d9;
   --page-max: 1440px;
-  --content-max: 1360px;
+  --content-max: 1260px;
   --page-gutter: max(1.25rem, calc((min(100vw, var(--page-max)) - var(--content-max)) / 2));
 }
 
