@@ -4,26 +4,20 @@ import HomeHero from "./components/home-hero";
 import ParallaxImage from "./components/parallax-image";
 import ReviewsSection from "./components/reviews-section";
 
-const meaningImage =
-  "https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=1200&auto=format&fit=crop";
+const meaningImage = "/images/sakura-bloom-meaning.png";
 
-const storyImage =
-  "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop";
+const storyImage = "/images/our-story.png";
 
-const missionImage =
-  "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=1200&auto=format&fit=crop";
+const missionImage = "/images/our-mission.png";
 
 const galleryImages = [
-  "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1611143080716-fb3b0ff2986d?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1564890369478-c89ca6d9ed5e?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1559494020-52d36de326f0?w=840&h=576&fit=crop",
-  "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=840&h=576&fit=crop",
+  "/images/gallery-1.png",
+  "/images/gallery-2.png",
+  "/images/gallery-3.png",
+  "/images/gallery-4.png",
+  "/images/gallery-5.png",
+  "/images/gallery-6.png",
+  "/images/gallery-7.png",
 ];
 
 export default function Home() {
