@@ -778,3 +778,63 @@ export function mergeFilters(
 
   return next;
 }
+
+/* ── Dessert pairing ──────────────────────────────────────────────────────
+ * Two directions are dietary facts and are resolved entirely in code, so the
+ * model has no way to hand back a dessert that violates them. The remaining
+ * directions are taste judgement, where the model's read genuinely adds
+ * value — code narrows the field, the model picks within it.
+ */
+
+export type PairingDirection =
+  | "similar"
+  | "contrast"
+  | "light"
+  | "rich"
+  | "budget"
+  | "dairy-free"
+  | "vegan";
+
+export const PAIRING_DIRECTIONS: PairingDirection[] = [
+  "similar",
+  "contrast",
+  "light",
+  "rich",
+  "budget",
+  "dairy-free",
+  "vegan",
+];
+
+const DESSERT_CATEGORIES: Category[] = ["desserts", "soft-serve"];
+
+function availableDesserts(): MenuItem[] {
+  return MENU.filter(
+    (item) => DESSERT_CATEGORIES.includes(item.category) && item.available,
+  );
+}
+
+/**
+ * The desserts the model is allowed to choose from for a given direction —
+ * used to build the request's id enum, so an ineligible id cannot be returned
+ * even by mistake.
+ */
+export function pairingCandidates(direction: PairingDirection): MenuItem[] {
+  const pool = availableDesserts();
+
+  switch (direction) {
+    case "dairy-free":
+      return pool.filter((item) => !item.containsDairy);
+    case "vegan":
+      return pool.filter((item) => item.vegan);
+    case "budget": {
+      // The cheaper half of the dessert menu, by price.
+      const sorted = [...pool].sort((a, b) => a.price - b.price);
+      return sorted.slice(0, Math.ceil(sorted.length / 2));
+    }
+    case "similar":
+    case "contrast":
+    case "light":
+    case "rich":
+      return pool;
+  }
+}

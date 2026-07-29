@@ -5,6 +5,7 @@ import { useState } from "react";
 import FaqAccordionItem from "../components/faq-accordion-item";
 import FilterPanel from "../components/filter-panel";
 import PageHero from "../components/page-hero";
+import PairingPanel from "../components/pairing-panel";
 import RecommendationCard from "../components/recommendation-card";
 import RevealOnce from "../components/reveal-once";
 import TypingMessage from "../components/typing-message";
@@ -287,6 +288,10 @@ export default function AskPage() {
             onRemove={removeFilter}
             onClearAll={clearFilters}
           />
+        </div>
+
+        <div className="mt-6">
+          <PairingPanel />
         </div>
       </section>
 
