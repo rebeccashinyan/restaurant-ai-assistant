@@ -4,11 +4,15 @@ import {
   FILTER_KEYS,
   MENU,
   MENU_BY_ID,
+  PAIRING_DIRECTIONS,
+  itemsByCategory,
   matchesFilters,
   mergeFilters,
   normalizeFilters,
   type MenuFilters,
+  type PairingDirection,
 } from "../../data/menu";
+import { findPairing, isPairingDirection } from "../_lib/find-pairing";
 import { SYSTEM_PROMPT } from "./system-prompt";
 
 const client = new OpenAI({
@@ -19,6 +23,7 @@ const client = new OpenAI({
 const MAX_HISTORY_MESSAGES = 12;
 
 const ALL_ITEM_IDS = MENU.map((item) => item.id);
+const DRINK_IDS = itemsByCategory("drinks").map((item) => item.id);
 
 /**
  * Longest name first, so "Sakura Blossom Milk" matches before a shorter name
@@ -114,8 +119,39 @@ const REPLY_SCHEMA = {
       ],
       additionalProperties: false,
     },
+    pairingRequest: {
+      type: "object",
+      description:
+        "Set when the guest wants a dessert paired with a drink. Each field stays null until they have actually told you that part.",
+      properties: {
+        wantsPairing: {
+          type: "boolean",
+          description:
+            "True whenever the guest is asking for a dessert to go with a drink, even if they have not said which drink or what kind of pairing yet.",
+        },
+        drinkId: {
+          type: ["string", "null"],
+          description: "The drink they want paired.",
+          enum: [...DRINK_IDS, null],
+        },
+        direction: {
+          type: ["string", "null"],
+          description:
+            "The kind of pairing they asked for. 'something rich' or 'indulgent' is rich; 'light' or 'refreshing' is light; 'a vegan dessert' is vegan; 'dairy-free' is dairy-free; 'cheap' or 'affordable' is budget; 'goes well with' is similar; 'contrasting' or 'balance it out' is contrast.",
+          enum: [...PAIRING_DIRECTIONS, null],
+        },
+      },
+      required: ["wantsPairing", "drinkId", "direction"],
+      additionalProperties: false,
+    },
   },
-  required: ["reply", "itemIds", "allergyWarning", "filters"],
+  required: [
+    "reply",
+    "itemIds",
+    "allergyWarning",
+    "filters",
+    "pairingRequest",
+  ],
   additionalProperties: false,
 } as const;
 
@@ -141,6 +177,34 @@ const FILTER_KEYWORDS: Record<keyof MenuFilters, RegExp> = {
   maxPrice: /(\$|\b(price|budget|cheap|cheaper|afford|spend|cost|under|below)\b)/i,
   category: /\b(drink|drinks|dessert|desserts|soft serve|ice cream|sweets)\b/i,
 };
+
+/**
+ * The model reliably identifies which drink the guest named but drops the
+ * direction about half the time — "something rich" and "a vegan dessert" both
+ * came back null while "a light dessert" worked. Read it out of the guest's own
+ * wording instead. Dietary terms are checked first: they are hard constraints,
+ * and "a rich vegan dessert" must resolve to vegan, not rich.
+ */
+const DIRECTION_KEYWORDS: [PairingDirection, RegExp][] = [
+  ["vegan", /\bvegan\b/i],
+  ["dairy-free", /(\bdairy[\s-]?free\b|\bno dairy\b|\blactose\b|\bwithout milk\b)/i],
+  ["budget", /(\$|\b(budget|cheap|cheaper|affordable|inexpensive|spend less)\b)/i],
+  ["light", /\b(light|lighter|refreshing|fresh|delicate|airy)\b/i],
+  ["rich", /\b(rich|richer|indulgent|decadent|heavy|dense|luxurious)\b/i],
+  ["contrast", /\b(contrast|contrasting|opposite|different|balance it out|cut through)\b/i],
+  ["similar", /\b(similar|complement|complementary|matching|goes well|harmonious)\b/i],
+];
+
+/** Backstop for a pairing request the model failed to flag. */
+const PAIRING_INTENT =
+  /\b(pair|pairing|goes? (well )?with|to go with|match(es)? my|alongside)\b/i;
+
+function directionFromText(text: string): PairingDirection | null {
+  for (const [direction, pattern] of DIRECTION_KEYWORDS) {
+    if (pattern.test(text)) return direction;
+  }
+  return null;
+}
 
 function parseHistory(value: unknown): ChatMessage[] {
   if (!Array.isArray(value)) return [];
@@ -170,6 +234,8 @@ export async function POST(request: Request) {
   let history: ChatMessage[];
   let currentFilters: Partial<MenuFilters>;
   let removedFilters: (keyof MenuFilters)[];
+  let chosenDrinkId: string | null;
+  let chosenDirection: PairingDirection | null;
 
   try {
     const body = await request.json();
@@ -184,6 +250,17 @@ export async function POST(request: Request) {
           FILTER_KEYS.includes(key as keyof MenuFilters),
         )
       : [];
+
+    // What the guest clicked. An explicit choice is exact, so it outranks
+    // anything the model infers from the sentence.
+    const chosen = body.pairingRequest;
+    chosenDrinkId =
+      typeof chosen?.drinkId === "string" && DRINK_IDS.includes(chosen.drinkId)
+        ? chosen.drinkId
+        : null;
+    chosenDirection = isPairingDirection(chosen?.direction)
+      ? chosen.direction
+      : null;
   } catch {
     return Response.json({ error: "Could not read the request." }, { status: 400 });
   }
@@ -222,6 +299,11 @@ export async function POST(request: Request) {
       itemIds: string[];
       allergyWarning: boolean;
       filters: Partial<MenuFilters>;
+      pairingRequest: {
+        wantsPairing: boolean;
+        drinkId: string | null;
+        direction: PairingDirection | null;
+      } | null;
     };
 
     const filters = normalizeFilters(
@@ -230,6 +312,15 @@ export async function POST(request: Request) {
 
     for (const key of removedFilters) {
       if (!FILTER_KEYWORDS[key].test(message)) filters[key] = null;
+    }
+
+    // Roughly one turn in four the model invents a condition nobody asked for —
+    // "maxCaffeine: none" on a request that never mentioned caffeine. A brand
+    // new dietary or caffeine constraint has to appear somewhere in the guest's
+    // own words or in what was already on screen.
+    for (const key of ["maxCaffeine", "vegan", "glutenFree", "dairyFree"] as const) {
+      const isNew = filters[key] !== null && currentFilters[key] == null;
+      if (isNew && !FILTER_KEYWORDS[key].test(message)) filters[key] = null;
     }
 
     // Union with names found in the prose itself — see itemIdsMentionedIn.
@@ -245,11 +336,54 @@ export async function POST(request: Request) {
       .filter((id) => id in MENU_BY_ID)
       .filter((id) => matchesFilters(MENU_BY_ID[id], filters));
 
+    // Once the guest has named both a drink and a direction, the pairing runs
+    // through the same code the panel uses — the chat model never picks the
+    // dessert itself, it only collects the two inputs.
+    const request = parsed.pairingRequest;
+
+    // A clicked value is exact; the model's reading is the fallback.
+    const drinkId = chosenDrinkId ?? request?.drinkId ?? null;
+
+    // A named drink is the model's own signal that this turn is about pairing,
+    // so reading the direction out of the wording here cannot fire by accident
+    // on an ordinary "I want something light" request.
+    const direction =
+      chosenDirection ??
+      request?.direction ??
+      (drinkId ? directionFromText(message) : null);
+
+    // Clicking a button is itself a pairing request, whatever the model decided.
+    const wantsPairing =
+      Boolean(request?.wantsPairing) ||
+      Boolean(chosenDrinkId) ||
+      Boolean(chosenDirection) ||
+      PAIRING_INTENT.test(message);
+
+    let pairing = null;
+    let awaitingPairingChoice: "drink" | "direction" | null = null;
+
+    if (drinkId && direction) {
+      const outcome = await findPairing(drinkId, direction);
+      if (outcome.ok && outcome.dessertId) {
+        pairing = {
+          drinkId: outcome.drinkId,
+          dessertId: outcome.dessertId,
+          reason: outcome.reason,
+        };
+      }
+    } else if (wantsPairing) {
+      // Mid-flow: tell the client which set of buttons to offer next.
+      awaitingPairingChoice = drinkId ? "direction" : "drink";
+    }
+
     return Response.json({
       reply: parsed.reply,
       itemIds,
       allergyWarning: parsed.allergyWarning,
       filters,
+      pairing,
+      awaitingPairingChoice,
+      pairingRequest: { drinkId, direction },
     });
   } catch (error) {
     console.error("Ask Sakura API error:", error);

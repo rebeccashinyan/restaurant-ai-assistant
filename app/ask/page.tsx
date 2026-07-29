@@ -5,7 +5,8 @@ import { useState } from "react";
 import FaqAccordionItem from "../components/faq-accordion-item";
 import FilterPanel from "../components/filter-panel";
 import PageHero from "../components/page-hero";
-import PairingPanel from "../components/pairing-panel";
+import PairingChoices from "../components/pairing-choices";
+import PairingResult from "../components/pairing-result";
 import RecommendationCard from "../components/recommendation-card";
 import RevealOnce from "../components/reveal-once";
 import TypingMessage from "../components/typing-message";
@@ -15,7 +16,14 @@ import {
   getItem,
   mergeFilters,
   type MenuFilters,
+  type PairingDirection,
 } from "../data/menu";
+
+type Pairing = {
+  drinkId: string;
+  dessertId: string;
+  reason: string | null;
+};
 
 type Message = {
   role: "user" | "assistant";
@@ -23,6 +31,10 @@ type Message = {
   /** Menu items the reply refers to. Cards are rendered from local data. */
   itemIds?: string[];
   allergyWarning?: boolean;
+  /** Set once the guest has given both a drink and a pairing direction. */
+  pairing?: Pairing | null;
+  /** Which set of pairing buttons to offer under this reply, if any. */
+  awaitingPairingChoice?: "drink" | "direction" | null;
 };
 
 const suggestedPrompts = [
@@ -30,6 +42,7 @@ const suggestedPrompts = [
   "What should I try as a matcha beginner?",
   "Show me dairy-free options",
   "Find something iced and not too sweet",
+  "Pair a dessert with my drink",
   "What can I order under $15?",
 ];
 
@@ -91,6 +104,11 @@ export default function AskPage() {
   const [filters, setFilters] = useState<MenuFilters>(EMPTY_FILTERS);
   /** Tags the guest took off by hand, so the model cannot quietly restore them. */
   const [removedFilters, setRemovedFilters] = useState<(keyof MenuFilters)[]>([]);
+  /** The pairing being assembled across turns. Reset once a pairing lands. */
+  const [pairingDraft, setPairingDraft] = useState<{
+    drinkId: string | null;
+    direction: PairingDirection | null;
+  }>({ drinkId: null, direction: null });
 
   const removeFilter = (key: keyof MenuFilters) => {
     setFilters((prev) => ({ ...prev, [key]: null }));
@@ -102,7 +120,11 @@ export default function AskPage() {
     setRemovedFilters(FILTER_KEYS);
   };
 
-  const handleSend = async (presetMessage?: string) => {
+  const handleSend = async (
+    presetMessage?: string,
+    /** Set when the guest clicked a pairing button instead of typing. */
+    chosen?: { drinkId?: string; direction?: PairingDirection },
+  ) => {
     const currentMessage = (presetMessage ?? userMessage).trim();
 
     if (!currentMessage || isLoading) {
@@ -111,6 +133,13 @@ export default function AskPage() {
 
     // Snapshot before the optimistic update so the request carries prior turns only.
     const history = messages.map(({ role, content }) => ({ role, content }));
+
+    // Carry forward whatever the flow has already established, so clicking a
+    // direction still knows which drink was picked a turn ago.
+    const pairingRequest = {
+      drinkId: chosen?.drinkId ?? pairingDraft.drinkId,
+      direction: chosen?.direction ?? pairingDraft.direction,
+    };
 
     setMessages((prev) => [...prev, { role: "user", content: currentMessage }]);
     setUserMessage("");
@@ -125,6 +154,7 @@ export default function AskPage() {
           history,
           filters,
           removedFilters,
+          pairingRequest,
         }),
       });
 
@@ -148,8 +178,21 @@ export default function AskPage() {
           content: data.reply,
           itemIds: data.itemIds ?? [],
           allergyWarning: data.allergyWarning ?? false,
+          pairing: data.pairing ?? null,
+          awaitingPairingChoice: data.awaitingPairingChoice ?? null,
         },
       ]);
+
+      // A finished pairing clears the slate so the next request starts fresh;
+      // an unfinished one keeps what has been chosen so far.
+      setPairingDraft(
+        data.pairing
+          ? { drinkId: null, direction: null }
+          : {
+              drinkId: data.pairingRequest?.drinkId ?? null,
+              direction: data.pairingRequest?.direction ?? null,
+            },
+      );
 
       // The reply is authoritative: the server has already stripped anything the
       // guest took off, so it replaces the panel rather than adding to it.
@@ -210,6 +253,13 @@ export default function AskPage() {
                     .map(getItem)
                     .filter((item) => item !== undefined);
 
+                  // Only the newest reply keeps its buttons — an older question
+                  // has already been answered, and re-answering it would be
+                  // ambiguous.
+                  const showChoices =
+                    message.awaitingPairingChoice != null &&
+                    index === messages.length - 1;
+
                   return (
                     <div
                       key={index}
@@ -241,6 +291,29 @@ export default function AskPage() {
                           {items.map((item) => (
                             <RecommendationCard key={item.id} item={item} />
                           ))}
+                        </div>
+                      )}
+
+                      {showChoices && (
+                        <PairingChoices
+                          kind={message.awaitingPairingChoice!}
+                          disabled={isLoading}
+                          onChooseDrink={(drinkId, label) =>
+                            handleSend(label, { drinkId })
+                          }
+                          onChooseDirection={(direction, label) =>
+                            handleSend(label, { direction })
+                          }
+                        />
+                      )}
+
+                      {message.pairing && (
+                        <div className="mt-4 rounded-2xl bg-white/60 p-5">
+                          <PairingResult
+                            drinkId={message.pairing.drinkId}
+                            dessertId={message.pairing.dessertId}
+                            reason={message.pairing.reason}
+                          />
                         </div>
                       )}
                     </div>
@@ -290,9 +363,6 @@ export default function AskPage() {
           />
         </div>
 
-        <div className="mt-6">
-          <PairingPanel />
-        </div>
       </section>
 
       {/* FAQ */}
