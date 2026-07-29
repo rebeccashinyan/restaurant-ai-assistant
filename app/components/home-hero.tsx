@@ -5,8 +5,7 @@ import HeroGrain from "./hero-grain";
 import HeroTitleReveal from "./hero-title-reveal";
 import { useHeroAtmosphere } from "./use-hero-atmosphere";
 
-const heroImage =
-  "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=2000&auto=format&fit=crop";
+const heroImage = "/images/hero-pic.png";
 
 export default function HomeHero() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -23,7 +22,7 @@ export default function HomeHero() {
         className="relative h-[72vh] w-full overflow-hidden"
       >
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-[center_70%]"
           style={{ backgroundImage: `url('${heroImage}')` }}
         />
         <div className="absolute inset-0 bg-black/30" />

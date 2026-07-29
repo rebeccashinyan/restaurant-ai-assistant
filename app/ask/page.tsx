@@ -4,13 +4,26 @@ import Link from "next/link";
 import { useState } from "react";
 import FaqAccordionItem from "../components/faq-accordion-item";
 import PageHero from "../components/page-hero";
+import RecommendationCard from "../components/recommendation-card";
 import RevealOnce from "../components/reveal-once";
 import TypingMessage from "../components/typing-message";
+import { getItem } from "../data/menu";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
+  /** Menu items the reply refers to. Cards are rendered from local data. */
+  itemIds?: string[];
+  allergyWarning?: boolean;
 };
+
+const suggestedPrompts = [
+  "Help me choose a drink",
+  "What should I try as a matcha beginner?",
+  "Show me dairy-free options",
+  "Find something iced and not too sweet",
+  "What can I order under $15?",
+];
 
 const faqItems = [
   {
@@ -56,6 +69,9 @@ const welcomeText =
 const INPUT_CLASS =
   "flex-1 rounded-xl border border-transparent bg-white px-5 py-4 font-serif text-[#1F1814] outline-none transition-[border-color,box-shadow] duration-300 ease-out hover:border-[#C09F9D]/30 hover:shadow-[0_4px_16px_rgba(192,157,157,0.08)] focus:border-[#C09F9D]/50 focus:shadow-[0_6px_20px_rgba(192,157,157,0.14)]";
 
+const SUGGESTED_PROMPT_CLASS =
+  "rounded-full border border-[#C09F9D]/40 bg-white px-4 py-2 font-serif text-sm text-[#4A3A32] transition-[transform,background-color,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-[#C09F9D]/70 hover:bg-[#F4EAE8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C09F9D] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0";
+
 const CONTACT_BUTTON_CLASS =
   "inline-block rounded-xl bg-[#C1C8BC] px-8 py-4 font-serif text-lg text-[#1F1814] transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-[#b5bdb0] hover:shadow-[0_8px_24px_rgba(193,200,188,0.32)] motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
@@ -65,12 +81,15 @@ export default function AskPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleSend = async () => {
-    if (!userMessage.trim() || isLoading) {
+  const handleSend = async (presetMessage?: string) => {
+    const currentMessage = (presetMessage ?? userMessage).trim();
+
+    if (!currentMessage || isLoading) {
       return;
     }
 
-    const currentMessage = userMessage.trim();
+    // Snapshot before the optimistic update so the request carries prior turns only.
+    const history = messages.map(({ role, content }) => ({ role, content }));
 
     setMessages((prev) => [...prev, { role: "user", content: currentMessage }]);
     setUserMessage("");
@@ -80,24 +99,10 @@ export default function AskPage() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: currentMessage }),
+        body: JSON.stringify({ message: currentMessage, history }),
       });
 
-      const text = await response.text();
-
-      if (!text) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content:
-              "No response from the API. Check your terminal for backend errors.",
-          },
-        ]);
-        return;
-      }
-
-      const data = JSON.parse(text);
+      const data = await response.json();
 
       if (!response.ok) {
         setMessages((prev) => [
@@ -112,15 +117,19 @@ export default function AskPage() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply },
+        {
+          role: "assistant",
+          content: data.reply,
+          itemIds: data.itemIds ?? [],
+          allergyWarning: data.allergyWarning ?? false,
+        },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "Something went wrong. Check the browser console and terminal.",
+          content: "Sakura could not be reached. Check your connection and try again.",
         },
       ]);
     } finally {
@@ -148,26 +157,62 @@ export default function AskPage() {
               <div className="flex-1 space-y-6">
                 <TypingMessage text={welcomeText} />
 
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={
-                      message.role === "user"
-                        ? "ml-auto w-fit max-w-[75%]"
-                        : "mr-auto w-fit max-w-[85%]"
-                    }
-                  >
-                    <p
-                      className={`w-fit whitespace-pre-line rounded-2xl px-5 py-4 font-serif text-[#1F1814] leading-relaxed ${
-                        message.role === "user"
-                          ? "bg-[#E8D5D2]"
-                          : "bg-[#C1C8BC]"
-                      }`}
-                    >
-                      {message.content}
-                    </p>
+                {messages.length === 0 && !isLoading && (
+                  <div className="mr-auto flex max-w-[85%] flex-wrap gap-2">
+                    {suggestedPrompts.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => handleSend(prompt)}
+                        className={SUGGESTED_PROMPT_CLASS}
+                      >
+                        {prompt}
+                      </button>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {messages.map((message, index) => {
+                  const items = (message.itemIds ?? [])
+                    .map(getItem)
+                    .filter((item) => item !== undefined);
+
+                  return (
+                    <div
+                      key={index}
+                      className={
+                        message.role === "user"
+                          ? "ml-auto w-fit max-w-[75%]"
+                          : "mr-auto max-w-[85%]"
+                      }
+                    >
+                      <p
+                        className={`w-fit whitespace-pre-line rounded-2xl px-5 py-4 font-serif text-[#1F1814] leading-relaxed ${
+                          message.role === "user"
+                            ? "bg-[#E8D5D2]"
+                            : "bg-[#C1C8BC]"
+                        }`}
+                      >
+                        {message.content}
+                      </p>
+
+                      {message.allergyWarning && (
+                        <p className="mt-3 rounded-xl border border-[#C09F9D]/45 bg-[#F4EAE8] px-4 py-3 text-sm leading-relaxed text-[#6B4A44]">
+                          Everything is prepared in a shared kitchen. Please confirm
+                          allergens with a staff member before ordering.
+                        </p>
+                      )}
+
+                      {items.length > 0 && (
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          {items.map((item) => (
+                            <RecommendationCard key={item.id} item={item} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {isLoading && (
                   <div className="mr-auto w-fit max-w-[85%]">
@@ -193,7 +238,7 @@ export default function AskPage() {
                 />
                 <button
                   type="button"
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={isLoading}
                   className="rounded-xl bg-[#E8D5D2] px-8 py-4 font-serif text-lg text-[#1F1814] transition hover:bg-[#dcc4c0] disabled:opacity-50"
                 >

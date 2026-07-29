@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const MENU_IMAGE_CLASS = "h-[320px] w-full rounded-2xl object-cover md:h-[480px]";
+/** Fills the block height so the photo column tracks the card, however long it gets. */
+/**
+ * From md up the photo is taken out of flow so it never drives the row height —
+ * the card decides how tall the block is and the photo fills whatever that is.
+ */
+const MENU_IMAGE_CLASS =
+  "h-[320px] w-full rounded-2xl object-cover md:absolute md:inset-0 md:h-full";
 const REVEAL_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 const ENTER_OFFSET_PX = 64;
 
@@ -85,7 +91,7 @@ export default function MenuBlock({
   return (
     <div
       ref={groupRef}
-      className="menu-reveal-float flex flex-col gap-6 will-change-[opacity,transform] motion-reduce:transition-none md:flex-row md:items-center"
+      className="menu-reveal-float flex flex-col gap-6 will-change-[opacity,transform] motion-reduce:transition-none md:flex-row md:items-stretch"
       style={
         reducedMotion
           ? { opacity: 1, transform: "none" }

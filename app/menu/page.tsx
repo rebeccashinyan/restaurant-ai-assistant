@@ -1,96 +1,102 @@
 import MenuBlock from "../components/menu-block";
 import PageHero from "../components/page-hero";
+import {
+  MODIFIERS,
+  SOFT_SERVE_SCOOPS,
+  itemsByCategory,
+  type MenuItem as MenuItemData,
+  type Modifier,
+} from "../data/menu";
+
+/** Category header images. Per-item photography is not shot yet. */
+const CATEGORY_IMAGES = {
+  drinks:
+    "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop",
+  desserts:
+    "https://images.unsplash.com/photo-1579888944880-d98341245702?q=80&w=1200&auto=format&fit=crop",
+  softServe:
+    "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop",
+} as const;
+
+function formatPrice(price: number) {
+  return `$${Number.isInteger(price) ? price : price.toFixed(2)}`;
+}
+
+function formatModifierPrice(price: number) {
+  return `+${formatPrice(price)}`;
+}
 
 export default function MenuPage() {
+  const drinks = itemsByCategory("drinks");
+  const desserts = itemsByCategory("desserts");
+  const softServe = itemsByCategory("soft-serve");
+
+  const drinkAddOns = MODIFIERS.filter((modifier) =>
+    modifier.appliesTo.includes("drinks"),
+  );
+  const softServeToppings = MODIFIERS.filter((modifier) =>
+    modifier.appliesTo.includes("soft-serve"),
+  );
+
   return (
     <main className="text-[#F7F3ED]">
       <PageHero title="Our Menu" />
 
       <section className="page-shell space-y-24 py-24">
         <MenuBlock
-          image="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop"
+          image={CATEGORY_IMAGES.drinks}
           alt="Matcha drink"
           imageSide="left"
         >
           <h2 className="mb-8 text-4xl font-serif">Signature Drinks</h2>
 
-          <MenuItem name="Sakura Bloom Latte" price="$7">
-            Ceremonial-grade matcha blended with milk and topped with delicate
-            sakura cream foam.
-          </MenuItem>
-
-          <MenuItem name="Strawberry Sakura Matcha" price="$8">
-            Fresh strawberry puree layered with creamy matcha and cherry blossom
-            cold foam.
-          </MenuItem>
-
-          <MenuItem name="Cloud Matcha" price="$7">
-            Smooth matcha latte finished with soft vanilla cream cloud.
-          </MenuItem>
-
-          <MenuItem name="Hojicha Blossom Latte" price="$7">
-            Roasted hojicha with floral cream and a subtle sakura sweetness.
-          </MenuItem>
-
-          <MenuItem name="Ube Bloom Fusion" price="$8">
-            Creamy ube and premium matcha swirled together for a rich earthy
-            flavor.
-          </MenuItem>
+          {drinks.map((item) => (
+            <MenuItem key={item.id} item={item} />
+          ))}
 
           <hr className="my-8 border-[#1F1814]/40" />
 
           <h3 className="mb-6 text-2xl font-serif">Drink Add-ons</h3>
 
-          <SmallItem name="Oat Milk" price="+$1" />
-          <SmallItem name="Matcha Shot" price="+$1.5" />
-          <SmallItem name="Sakura Cream Foam" price="+$1" />
+          {drinkAddOns.map((modifier) => (
+            <ModifierRow key={modifier.id} modifier={modifier} />
+          ))}
         </MenuBlock>
 
         <MenuBlock
-          image="https://images.unsplash.com/photo-1579888944880-d98341245702?q=80&w=1200&auto=format&fit=crop"
+          image={CATEGORY_IMAGES.desserts}
           alt="Sakura desserts"
           imageSide="right"
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Desserts</h2>
 
-          <MenuItem name="Sakura Shortcake" price="$8">
-            Light vanilla sponge layered with fresh strawberries and sakura
-            cream.
-          </MenuItem>
-
-          <MenuItem name="Matcha Mille Crepe" price="$9">
-            Delicate layers of crepes with rich ceremonial matcha cream.
-          </MenuItem>
-
-          <MenuItem name="Sakura Nerikiri" price="$7">
-            Handcrafted Japanese wagashi shaped like blooming sakura flowers
-            with delicate sweet bean filling.
-          </MenuItem>
-
-          <MenuItem name="Momo Nerikiri" price="$7">
-            Elegant peach-shaped nerikiri served as a soft seasonal tea dessert
-            with subtle floral sweetness.
-          </MenuItem>
+          {desserts.map((item) => (
+            <MenuItem key={item.id} item={item} />
+          ))}
         </MenuBlock>
 
         <MenuBlock
-          image="https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop"
+          image={CATEGORY_IMAGES.softServe}
           alt="Bloom soft serve"
           imageSide="left"
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Soft Serve</h2>
 
           <p className="mb-2">Choose Your Scoops</p>
-          <SmallItem name="1 Scoop" price="$5" />
-          <SmallItem name="2 Scoops" price="$8" />
-          <SmallItem name="3 Scoops" price="$11" />
+          {SOFT_SERVE_SCOOPS.map(({ scoops, price }) => (
+            <SmallItem
+              key={scoops}
+              name={scoops === 1 ? "1 Scoop" : `${scoops} Scoops`}
+              price={formatPrice(price)}
+            />
+          ))}
 
           <div className="mt-6">
             <p>Flavors</p>
             <ul className="ml-6 list-disc font-semibold">
-              <li>Sakura Matcha</li>
-              <li>Hojicha</li>
-              <li>Ube Blossom</li>
+              {softServe.map((item) => (
+                <li key={item.id}>{item.name.replace(" Soft Serve", "")}</li>
+              ))}
             </ul>
           </div>
 
@@ -98,30 +104,32 @@ export default function MenuPage() {
 
           <h3 className="mb-6 text-2xl font-serif">Soft Serve Toppings</h3>
 
-          <SmallItem name="Mochi Bites" price="+$1.5" />
-          <SmallItem name="Strawberry Drizzle" price="+$1" />
+          {softServeToppings.map((modifier) => (
+            <ModifierRow key={modifier.id} modifier={modifier} />
+          ))}
         </MenuBlock>
       </section>
     </main>
   );
 }
 
-function MenuItem({
-  name,
-  price,
-  children,
-}: {
-  name: string;
-  price: string;
-  children: React.ReactNode;
-}) {
+function MenuItem({ item }: { item: MenuItemData }) {
   return (
     <div className="mb-6">
       <div className="flex justify-between gap-8 font-bold">
-        <h3>{name}</h3>
-        <span>{price}</span>
+        <h3>{item.name}</h3>
+        <span>{formatPrice(item.price)}</span>
       </div>
-      <p className="leading-relaxed">{children}</p>
+      <p className="leading-relaxed">{item.description}</p>
+    </div>
+  );
+}
+
+function ModifierRow({ modifier }: { modifier: Modifier }) {
+  return (
+    <div className="mb-3 flex justify-between gap-8 font-bold">
+      <span>{modifier.name}</span>
+      <span>{formatModifierPrice(modifier.price)}</span>
     </div>
   );
 }
