@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import FaqAccordionItem from "../components/faq-accordion-item";
+import FilterPanel from "../components/filter-panel";
 import PageHero from "../components/page-hero";
 import RecommendationCard from "../components/recommendation-card";
 import RevealOnce from "../components/reveal-once";
 import TypingMessage from "../components/typing-message";
-import { getItem } from "../data/menu";
+import {
+  EMPTY_FILTERS,
+  FILTER_KEYS,
+  getItem,
+  mergeFilters,
+  type MenuFilters,
+} from "../data/menu";
 
 type Message = {
   role: "user" | "assistant";
@@ -80,6 +87,19 @@ export default function AskPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [filters, setFilters] = useState<MenuFilters>(EMPTY_FILTERS);
+  /** Tags the guest took off by hand, so the model cannot quietly restore them. */
+  const [removedFilters, setRemovedFilters] = useState<(keyof MenuFilters)[]>([]);
+
+  const removeFilter = (key: keyof MenuFilters) => {
+    setFilters((prev) => ({ ...prev, [key]: null }));
+    setRemovedFilters((prev) => (prev.includes(key) ? prev : [...prev, key]));
+  };
+
+  const clearFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setRemovedFilters(FILTER_KEYS);
+  };
 
   const handleSend = async (presetMessage?: string) => {
     const currentMessage = (presetMessage ?? userMessage).trim();
@@ -99,7 +119,12 @@ export default function AskPage() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: currentMessage, history }),
+        body: JSON.stringify({
+          message: currentMessage,
+          history,
+          filters,
+          removedFilters,
+        }),
       });
 
       const data = await response.json();
@@ -124,6 +149,13 @@ export default function AskPage() {
           allergyWarning: data.allergyWarning ?? false,
         },
       ]);
+
+      // The reply is authoritative: the server has already stripped anything the
+      // guest took off, so it replaces the panel rather than adding to it.
+      const nextFilters = mergeFilters(EMPTY_FILTERS, data.filters ?? {});
+      setFilters(nextFilters);
+      // A condition the guest raised again is theirs to keep; stop suppressing it.
+      setRemovedFilters((prev) => prev.filter((key) => nextFilters[key] === null));
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -248,6 +280,14 @@ export default function AskPage() {
             </div>
           </div>
         </RevealOnce>
+
+        <div className="mt-6">
+          <FilterPanel
+            filters={filters}
+            onRemove={removeFilter}
+            onClearAll={clearFilters}
+          />
+        </div>
       </section>
 
       {/* FAQ */}

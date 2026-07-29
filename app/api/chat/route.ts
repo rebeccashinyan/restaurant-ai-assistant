@@ -1,5 +1,14 @@
 import OpenAI from "openai";
-import { MENU, MENU_BY_ID } from "../../data/menu";
+import {
+  EMPTY_FILTERS,
+  FILTER_KEYS,
+  MENU,
+  MENU_BY_ID,
+  matchesFilters,
+  mergeFilters,
+  normalizeFilters,
+  type MenuFilters,
+} from "../../data/menu";
 import { SYSTEM_PROMPT } from "./system-prompt";
 
 const client = new OpenAI({
@@ -32,14 +41,78 @@ const REPLY_SCHEMA = {
       type: "boolean",
       description: "True when the guest raised an allergy or dietary restriction.",
     },
+    filters: {
+      type: "object",
+      description:
+        "The guest's stated requirements as menu conditions. Null means the guest did not mention it.",
+      properties: {
+        temperature: {
+          type: ["string", "null"],
+          enum: ["hot", "iced", null],
+        },
+        maxSweetness: {
+          type: ["integer", "null"],
+          description: "0 = not sweet, 5 = dessert-sweet. 'Not too sweet' is 2.",
+        },
+        minMatcha: {
+          type: ["integer", "null"],
+          description: "0-5. Use when the guest wants a strong matcha flavour.",
+        },
+        maxCaffeine: {
+          type: ["string", "null"],
+          enum: ["none", "low", "medium", "high", null],
+        },
+        dairyFree: { type: ["boolean", "null"] },
+        vegan: { type: ["boolean", "null"] },
+        glutenFree: { type: ["boolean", "null"] },
+        maxPrice: {
+          type: ["integer", "null"],
+          description: "Budget ceiling for a single item, in dollars.",
+        },
+        category: {
+          type: ["string", "null"],
+          enum: ["drinks", "desserts", "soft-serve", null],
+        },
+      },
+      required: [
+        "temperature",
+        "maxSweetness",
+        "minMatcha",
+        "maxCaffeine",
+        "dairyFree",
+        "vegan",
+        "glutenFree",
+        "maxPrice",
+        "category",
+      ],
+      additionalProperties: false,
+    },
   },
-  required: ["reply", "itemIds", "allergyWarning"],
+  required: ["reply", "itemIds", "allergyWarning", "filters"],
   additionalProperties: false,
 } as const;
 
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+};
+
+/**
+ * A tag the guest removed by hand comes back only when they raise the subject
+ * again in their own words. Asking the model which conditions were "just
+ * mentioned" does not work — it reports anything still visible in the history —
+ * so the guest's latest message is matched directly.
+ */
+const FILTER_KEYWORDS: Record<keyof MenuFilters, RegExp> = {
+  temperature: /\b(hot|iced|ice|cold|warm|chilled)\b/i,
+  maxSweetness: /\b(sweet|sweetness|sugar|sugary|unsweetened)\b/i,
+  minMatcha: /\bmatcha\b/i,
+  maxCaffeine: /\b(caffeine|caffeinated|decaf|decaffeinated)\b/i,
+  dairyFree: /\b(dairy|milk|lactose|milky|creamy)\b/i,
+  vegan: /\bvegan\b/i,
+  glutenFree: /\bgluten\b/i,
+  maxPrice: /(\$|\b(price|budget|cheap|cheaper|afford|spend|cost|under|below)\b)/i,
+  category: /\b(drink|drinks|dessert|desserts|soft serve|ice cream|sweets)\b/i,
 };
 
 function parseHistory(value: unknown): ChatMessage[] {
@@ -68,11 +141,22 @@ export async function POST(request: Request) {
 
   let message: string;
   let history: ChatMessage[];
+  let currentFilters: Partial<MenuFilters>;
+  let removedFilters: (keyof MenuFilters)[];
 
   try {
     const body = await request.json();
     message = typeof body.message === "string" ? body.message.trim() : "";
     history = parseHistory(body.history);
+    currentFilters =
+      typeof body.filters === "object" && body.filters !== null
+        ? body.filters
+        : {};
+    removedFilters = Array.isArray(body.removedFilters)
+      ? body.removedFilters.filter((key: unknown): key is keyof MenuFilters =>
+          FILTER_KEYS.includes(key as keyof MenuFilters),
+        )
+      : [];
   } catch {
     return Response.json({ error: "Could not read the request." }, { status: 400 });
   }
@@ -87,6 +171,13 @@ export async function POST(request: Request) {
       input: [
         { role: "system", content: SYSTEM_PROMPT },
         ...history,
+        {
+          role: "system",
+          content:
+            `Filters currently on the guest's screen: ${JSON.stringify(currentFilters)}. ` +
+            "Anything absent here was either never set or the guest removed the tag themselves. " +
+            "Carry these forward in your answer and do not re-add a condition they took off.",
+        },
         { role: "user", content: message },
       ],
       text: {
@@ -103,15 +194,29 @@ export async function POST(request: Request) {
       reply: string;
       itemIds: string[];
       allergyWarning: boolean;
+      filters: Partial<MenuFilters>;
     };
 
-    // Second gate: even a schema-conforming id is dropped if it left the menu.
-    const itemIds = parsed.itemIds.filter((id) => id in MENU_BY_ID);
+    const filters = normalizeFilters(
+      mergeFilters(EMPTY_FILTERS, parsed.filters ?? {}),
+    );
+
+    for (const key of removedFilters) {
+      if (!FILTER_KEYWORDS[key].test(message)) filters[key] = null;
+    }
+
+    // Second gate: a schema-conforming id is still dropped if it left the menu,
+    // and a highlighted item that fails the guest's own filters is a
+    // contradiction on screen — the panel wins, not the prose.
+    const itemIds = parsed.itemIds
+      .filter((id) => id in MENU_BY_ID)
+      .filter((id) => matchesFilters(MENU_BY_ID[id], filters));
 
     return Response.json({
       reply: parsed.reply,
       itemIds,
       allergyWarning: parsed.allergyWarning,
+      filters,
     });
   } catch (error) {
     console.error("Ask Sakura API error:", error);

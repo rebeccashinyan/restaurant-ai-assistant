@@ -721,3 +721,116 @@ export function getItem(id: string): MenuItem | undefined {
 export function itemsByCategory(category: Category): MenuItem[] {
   return MENU.filter((item) => item.category === category);
 }
+
+/* ── Filtering ──────────────────────────────────────────────────────────────
+ * The model translates a sentence into these conditions; this file decides
+ * which items match. Matching is arithmetic, not judgement, so a filtered
+ * result set is always correct even when the translation is not.
+ */
+
+export type MenuFilters = {
+  temperature: "hot" | "iced" | null;
+  /** Item sweetness must be at or below this. */
+  maxSweetness: Level | null;
+  /** Item matcha intensity must be at or above this. */
+  minMatcha: Level | null;
+  maxCaffeine: CaffeineLevel | null;
+  dairyFree: boolean | null;
+  vegan: boolean | null;
+  glutenFree: boolean | null;
+  maxPrice: number | null;
+  category: Category | null;
+};
+
+export const EMPTY_FILTERS: MenuFilters = {
+  temperature: null,
+  maxSweetness: null,
+  minMatcha: null,
+  maxCaffeine: null,
+  dairyFree: null,
+  vegan: null,
+  glutenFree: null,
+  maxPrice: null,
+  category: null,
+};
+
+export const FILTER_KEYS = Object.keys(EMPTY_FILTERS) as (keyof MenuFilters)[];
+
+const CAFFEINE_ORDER: Record<CaffeineLevel, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+/** "hot-or-iced" satisfies either request; a chilled dessert satisfies neither. */
+function servedAt(item: MenuItem, temperature: "hot" | "iced") {
+  if (item.temperature === "hot-or-iced") return true;
+  return item.temperature === temperature;
+}
+
+export function matchesFilters(item: MenuItem, filters: MenuFilters): boolean {
+  if (!item.available) return false;
+  if (filters.category !== null && item.category !== filters.category) return false;
+  if (filters.temperature !== null && !servedAt(item, filters.temperature)) {
+    return false;
+  }
+  if (filters.maxSweetness !== null && item.sweetness > filters.maxSweetness) {
+    return false;
+  }
+  if (filters.minMatcha !== null && item.matchaIntensity < filters.minMatcha) {
+    return false;
+  }
+  if (
+    filters.maxCaffeine !== null &&
+    CAFFEINE_ORDER[item.caffeine] > CAFFEINE_ORDER[filters.maxCaffeine]
+  ) {
+    return false;
+  }
+  if (filters.dairyFree === true && item.containsDairy) return false;
+  if (filters.vegan === true && !item.vegan) return false;
+  if (filters.glutenFree === true && !item.glutenFree) return false;
+  if (filters.maxPrice !== null && item.price > filters.maxPrice) return false;
+
+  return true;
+}
+
+export function applyFilters(filters: MenuFilters): MenuItem[] {
+  return MENU.filter((item) => matchesFilters(item, filters));
+}
+
+export function activeFilterCount(filters: MenuFilters): number {
+  return FILTER_KEYS.filter((key) => filters[key] !== null).length;
+}
+
+/**
+ * Drops conditions that exclude nothing. A model that fills every field rather
+ * than leaving nulls produces tags like "Matcha 0 of 5 or more", which read as
+ * a constraint the guest asked for and did not.
+ */
+export function normalizeFilters(filters: MenuFilters): MenuFilters {
+  return {
+    ...filters,
+    maxSweetness: filters.maxSweetness === 5 ? null : filters.maxSweetness,
+    minMatcha: filters.minMatcha === 0 ? null : filters.minMatcha,
+    maxCaffeine: filters.maxCaffeine === "high" ? null : filters.maxCaffeine,
+  };
+}
+
+/** Merges a partial update from the model over whatever is already on screen. */
+export function mergeFilters(
+  current: MenuFilters,
+  incoming: Partial<MenuFilters>,
+): MenuFilters {
+  const next = { ...current };
+
+  for (const key of FILTER_KEYS) {
+    const value = incoming[key];
+    if (value !== undefined && value !== null) {
+      // @ts-expect-error — key/value stay aligned by construction.
+      next[key] = value;
+    }
+  }
+
+  return next;
+}
