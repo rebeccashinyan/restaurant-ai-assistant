@@ -21,6 +21,33 @@ const MAX_HISTORY_MESSAGES = 12;
 const ALL_ITEM_IDS = MENU.map((item) => item.id);
 
 /**
+ * Longest name first, so "Sakura Blossom Milk" matches before a shorter name
+ * that happens to be its prefix would.
+ */
+const NAME_MATCHERS = [...MENU]
+  .sort((a, b) => b.name.length - a.name.length)
+  .map((item) => ({
+    id: item.id,
+    // Escape the name, then allow it to match as a whole word/phrase only.
+    pattern: new RegExp(
+      `\\b${item.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+      "i",
+    ),
+  }));
+
+/**
+ * The model is told to put every item it names into itemIds (route.ts calls
+ * this a hard rule) but does not reliably follow it — see the "mentions Cloud
+ * Matcha, itemIds: []" failure mode. Rather than keep tightening the prompt,
+ * this reads the id back out of the sentence itself, which cannot drift.
+ */
+function itemIdsMentionedIn(text: string): string[] {
+  return NAME_MATCHERS.filter(({ pattern }) => pattern.test(text)).map(
+    ({ id }) => id,
+  );
+}
+
+/**
  * The model may only pick ids that already exist, so it cannot name an item we
  * don't sell. Prices and allergens never cross this boundary — the client
  * renders those from the menu module.
@@ -205,10 +232,16 @@ export async function POST(request: Request) {
       if (!FILTER_KEYWORDS[key].test(message)) filters[key] = null;
     }
 
+    // Union with names found in the prose itself — see itemIdsMentionedIn.
+    const candidateIds = new Set([
+      ...parsed.itemIds,
+      ...itemIdsMentionedIn(parsed.reply),
+    ]);
+
     // Second gate: a schema-conforming id is still dropped if it left the menu,
     // and a highlighted item that fails the guest's own filters is a
     // contradiction on screen — the panel wins, not the prose.
-    const itemIds = parsed.itemIds
+    const itemIds = [...candidateIds]
       .filter((id) => id in MENU_BY_ID)
       .filter((id) => matchesFilters(MENU_BY_ID[id], filters));
 
