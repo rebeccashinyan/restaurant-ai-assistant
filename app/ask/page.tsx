@@ -10,6 +10,7 @@ import PairingResult from "../components/pairing-result";
 import RecommendationCard from "../components/recommendation-card";
 import RevealOnce from "../components/reveal-once";
 import TypingMessage from "../components/typing-message";
+import { FAQ } from "../data/cafe-info";
 import {
   EMPTY_FILTERS,
   FILTER_KEYS,
@@ -44,48 +45,12 @@ const suggestedPrompts = [
   "Find something iced and not too sweet",
   "Pair a dessert with my drink",
   "What can I order under $15?",
-];
-
-const faqItems = [
-  {
-    question: "What kind of matcha does Sakura Bloom use?",
-    answer:
-      "We use ceremonial-grade matcha sourced from Uji, Japan. It is stone-ground for a smooth, vibrant flavor and whisked fresh for every drink.",
-  },
-  {
-    question: "Do you offer dairy-free options?",
-    answer:
-      "Yes. Oat milk is available for all lattes and specialty drinks, and many desserts can be made without dairy upon request.",
-  },
-  {
-    question: "Are your desserts made fresh daily?",
-    answer:
-      "Our wagashi, cakes, and pastries are prepared in small batches each morning so they stay soft, delicate, and at their best throughout the day.",
-  },
-  {
-    question: "What is the most popular drink at Sakura Bloom?",
-    answer:
-      "The Sakura Bloom Latte is our signature — ceremonial matcha with milk and delicate sakura cream foam. The Strawberry Sakura Matcha is a close favorite.",
-  },
-  {
-    question: "Can I study or work at Sakura Bloom?",
-    answer:
-      "Absolutely. Our space is designed to feel calm and welcoming, with comfortable seating and a quiet atmosphere perfect for reading, studying, or remote work.",
-  },
-  {
-    question: "Do you offer seasonal menu items?",
-    answer:
-      "Yes. We rotate limited-time drinks and desserts inspired by cherry blossom season, summer fruit, and other Japanese seasonal traditions.",
-  },
-  {
-    question: "Is Sakura Bloom inspired by Japanese cafés?",
-    answer:
-      "Very much so. Our aesthetic, ingredients, and pacing are influenced by tea houses and specialty matcha shops in Tokyo and Kyoto, reimagined for a modern New York setting.",
-  },
+  "When are you open?",
+  "Where are you located?",
 ];
 
 const welcomeText =
-  "Hi! I'm Sakura, your AI assistant. You can ask me anything about our matcha drinks, seasonal desserts, café atmosphere, or personalized recommendations.";
+  "Hi! I'm Sakura, your AI assistant. Ask me about our matcha drinks and seasonal desserts, or about visiting — opening hours, where to find us, and how to reach us.";
 
 const INPUT_CLASS =
   "flex-1 rounded-xl border border-transparent bg-white px-5 py-4 font-serif text-[#1F1814] outline-none transition-[border-color,box-shadow] duration-300 ease-out hover:border-[#C09F9D]/30 hover:shadow-[0_4px_16px_rgba(192,157,157,0.08)] focus:border-[#C09F9D]/50 focus:shadow-[0_6px_20px_rgba(192,157,157,0.14)]";
@@ -332,7 +297,7 @@ export default function AskPage() {
               <div className="mt-8 flex gap-4">
                 <input
                   type="text"
-                  placeholder="Ask about drinks, desserts, or recommendations..."
+                  placeholder="Ask about drinks, desserts, or visiting us..."
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -382,14 +347,14 @@ export default function AskPage() {
           </div>
 
           <div className="min-w-0 overflow-hidden rounded-3xl bg-[#F7F3F0] text-[#1F1814]">
-            {faqItems.map((item, index) => (
+            {FAQ.map((item, index) => (
               <FaqAccordionItem
                 key={item.question}
                 question={item.question}
                 answer={item.answer}
                 isOpen={openFaq === index}
                 onToggle={() => setOpenFaq(openFaq === index ? null : index)}
-                showDivider={index < faqItems.length - 1}
+                showDivider={index < FAQ.length - 1}
               />
             ))}
           </div>

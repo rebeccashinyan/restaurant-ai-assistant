@@ -1,5 +1,6 @@
 "use client";
 
+import { CAFE } from "../data/cafe-info";
 import RevealOnce from "./reveal-once";
 
 const FIELD_CLASS =
@@ -77,14 +78,12 @@ export default function ContactSection() {
           <div className="space-y-8">
             <div>
               <p className="mb-2 text-xl font-bold text-white">Phone</p>
-              <p className="text-lg text-white/90">(212) 555-2038</p>
+              <p className="text-lg text-white/90">{CAFE.phone}</p>
             </div>
 
             <div>
               <p className="mb-2 text-xl font-bold text-white">Email</p>
-              <p className="text-lg text-white/90">
-                hello@sakurabloommatcha.com
-              </p>
+              <p className="text-lg text-white/90">{CAFE.email}</p>
             </div>
           </div>
 
@@ -93,9 +92,12 @@ export default function ContactSection() {
           <div>
             <p className="mb-4 text-xl font-bold text-white">Opening Hours</p>
             <p className="text-lg leading-relaxed text-white/90">
-              Mon – Fri: 8AM – 8PM
-              <br />
-              Sat – Sun: 9AM – 9PM
+              {CAFE.hours.map(({ days, hours }, index) => (
+                <span key={days}>
+                  {index > 0 && <br />}
+                  {days}: {hours}
+                </span>
+              ))}
             </p>
           </div>
         </RevealOnce>

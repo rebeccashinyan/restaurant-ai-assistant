@@ -10,12 +10,9 @@ import {
 
 /** Category header images. Per-item photography is not shot yet. */
 const CATEGORY_IMAGES = {
-  drinks:
-    "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=1200&auto=format&fit=crop",
-  desserts:
-    "https://images.unsplash.com/photo-1579888944880-d98341245702?q=80&w=1200&auto=format&fit=crop",
-  softServe:
-    "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop",
+  drinks: "/images/menu-drinks.png",
+  desserts: "/images/menu-desserts.png",
+  softServe: "/images/menu-soft-serve.png",
 } as const;
 
 function formatPrice(price: number) {
@@ -45,7 +42,7 @@ export default function MenuPage() {
       <section className="page-shell space-y-24 py-24">
         <MenuBlock
           image={CATEGORY_IMAGES.drinks}
-          alt="Matcha drink"
+          alt="Whisked matcha in a sakura-stamped ceramic bowl beside a bamboo whisk"
           imageSide="left"
         >
           <h2 className="mb-8 text-4xl font-serif">Signature Drinks</h2>
@@ -65,7 +62,7 @@ export default function MenuPage() {
 
         <MenuBlock
           image={CATEGORY_IMAGES.desserts}
-          alt="Sakura desserts"
+          alt="Matcha mille crepe slice and a pink sakura nerikiri on a ceramic plate"
           imageSide="right"
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Desserts</h2>
@@ -77,7 +74,7 @@ export default function MenuPage() {
 
         <MenuBlock
           image={CATEGORY_IMAGES.softServe}
-          alt="Bloom soft serve"
+          alt="Sakura, matcha, and ube scoops in a ceramic bowl"
           imageSide="left"
         >
           <h2 className="mb-8 text-4xl font-serif">Bloom Soft Serve</h2>

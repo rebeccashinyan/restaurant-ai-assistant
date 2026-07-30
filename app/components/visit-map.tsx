@@ -1,9 +1,9 @@
 "use client";
 
+import { MAPS_QUERY } from "../data/cafe-info";
 import { useReducedMotion } from "./use-reduced-motion";
 
-const MAPS_EMBED =
-  "https://www.google.com/maps?q=128+Sakura+Street+New+York+NY+10012&output=embed";
+const MAPS_EMBED = `https://www.google.com/maps?q=${MAPS_QUERY}&output=embed`;
 
 type VisitMapProps = {
   className?: string;

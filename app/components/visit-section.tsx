@@ -1,3 +1,4 @@
+import { CAFE } from "../data/cafe-info";
 import RevealFrom from "./reveal-from";
 import RevealLine from "./reveal-line";
 import VisitMap from "./visit-map";
@@ -15,9 +16,9 @@ export default function VisitSection() {
             <div>
               <p className="mb-3 text-xl font-bold text-white">Address</p>
               <p className="text-lg leading-relaxed text-white/90">
-                128 Sakura Street
+                {CAFE.address.street}
                 <br />
-                New York, NY 10012
+                {CAFE.address.cityStateZip}
               </p>
             </div>
 
@@ -26,9 +27,12 @@ export default function VisitSection() {
             <div>
               <p className="mb-3 text-xl font-bold text-white">Opening Hours</p>
               <p className="text-lg leading-relaxed text-white/90">
-                Mon – Fri: 8AM – 8PM
-                <br />
-                Sat – Sun: 9AM – 9PM
+                {CAFE.hours.map(({ days, hours }, index) => (
+                  <span key={days}>
+                    {index > 0 && <br />}
+                    {days}: {hours}
+                  </span>
+                ))}
               </p>
             </div>
           </div>
