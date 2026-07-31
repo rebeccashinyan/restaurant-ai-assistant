@@ -195,6 +195,18 @@ const DIRECTION_KEYWORDS: [PairingDirection, RegExp][] = [
   ["similar", /\b(similar|complement|complementary|matching|goes well|harmonious)\b/i],
 ];
 
+/**
+ * The prompt fixes these two questions word for word and forbids listing the
+ * options, because the options are already on the buttons directly below. The
+ * model keeps appending them anyway — "would you prefer something rich, light,
+ * or similar?" — which makes the guest read the same list from two places.
+ * The wording is not a judgement call, so the interface owns it outright.
+ */
+const PAIRING_QUESTION: Record<"drink" | "direction", string> = {
+  drink: "Which drink are you having?",
+  direction: "What kind of pairing would you like?",
+};
+
 /** Backstop for a pairing request the model failed to flag. */
 const PAIRING_INTENT =
   /\b(pair|pairing|goes? (well )?with|to go with|match(es)? my|alongside)\b/i;
@@ -323,18 +335,19 @@ export async function POST(request: Request) {
       if (isNew && !FILTER_KEYWORDS[key].test(message)) filters[key] = null;
     }
 
-    // Union with names found in the prose itself — see itemIdsMentionedIn.
-    const candidateIds = new Set([
-      ...parsed.itemIds,
-      ...itemIdsMentionedIn(parsed.reply),
-    ]);
+    // Asking where the café is does not withdraw the preferences already on
+    // screen, but the model returns all-null filters for a café question and
+    // that read as the guest clearing them. Changing the subject is not the
+    // same as changing your mind: if nothing in their words touched any of
+    // these conditions, the panel stays as they left it.
+    const clearedEverything = FILTER_KEYS.every((key) => filters[key] === null);
+    const raisedAnyCondition = FILTER_KEYS.some((key) =>
+      FILTER_KEYWORDS[key].test(message),
+    );
 
-    // Second gate: a schema-conforming id is still dropped if it left the menu,
-    // and a highlighted item that fails the guest's own filters is a
-    // contradiction on screen — the panel wins, not the prose.
-    const itemIds = [...candidateIds]
-      .filter((id) => id in MENU_BY_ID)
-      .filter((id) => matchesFilters(MENU_BY_ID[id], filters));
+    if (clearedEverything && !raisedAnyCondition) {
+      Object.assign(filters, mergeFilters(EMPTY_FILTERS, currentFilters));
+    }
 
     // Once the guest has named both a drink and a direction, the pairing runs
     // through the same code the panel uses — the chat model never picks the
@@ -347,10 +360,13 @@ export async function POST(request: Request) {
     // A named drink is the model's own signal that this turn is about pairing,
     // so reading the direction out of the wording here cannot fire by accident
     // on an ordinary "I want something light" request.
-    const direction =
-      chosenDirection ??
-      request?.direction ??
-      (drinkId ? directionFromText(message) : null);
+    // The model's own reading is deliberately not a source here. Asked to fill
+    // this field it will invent a direction the guest never gave — a click on
+    // "Ceremonial Matcha" came back with a finished pairing, skipping the
+    // question entirely. A click is exact and the guest's own wording is
+    // evidence; anything else means we do not know yet, and asking is the
+    // right failure.
+    const direction = chosenDirection ?? directionFromText(message);
 
     // Clicking a button is itself a pairing request, whatever the model decided.
     const wantsPairing =
@@ -359,8 +375,30 @@ export async function POST(request: Request) {
       Boolean(chosenDirection) ||
       PAIRING_INTENT.test(message);
 
+    // Union with names found in the prose itself — see itemIdsMentionedIn.
+    const candidateIds = new Set([
+      ...parsed.itemIds,
+      ...itemIdsMentionedIn(parsed.reply),
+    ]);
+
+    // Second gate: a schema-conforming id is still dropped if it left the menu,
+    // and a highlighted item that fails the guest's own filters is a
+    // contradiction on screen — the panel wins, not the prose.
+    //
+    // A pairing turn renders its own two items, with a total, in the pairing
+    // block. Reading names back out of the sentence there produced the drink
+    // and the dessert a second time, stacked above the block that already
+    // showed them — so a pairing turn contributes no cards of its own.
+    const itemIds = wantsPairing
+      ? []
+      : [...candidateIds]
+          .filter((id) => id in MENU_BY_ID)
+          .filter((id) => matchesFilters(MENU_BY_ID[id], filters));
+
     let pairing = null;
     let awaitingPairingChoice: "drink" | "direction" | null = null;
+    /** Set when the interface, not the model, owns the sentence for this turn. */
+    let handoverLine: string | null = null;
 
     if (drinkId && direction) {
       const outcome = await findPairing(drinkId, direction);
@@ -371,13 +409,26 @@ export async function POST(request: Request) {
           reason: outcome.reason,
         };
       }
+
+      // The prompt asks for a short handover line and no dessert names, since
+      // the dessert has not been chosen yet at the point the sentence is
+      // written. The model guesses anyway — it named two desserts while the
+      // block below it showed a third. The block carries its own reason, which
+      // is written after the choice and is therefore about the right dessert,
+      // so the line above it only has to hand over.
+      if (pairing) {
+        handoverLine = `Here is what I would pair with your ${MENU_BY_ID[drinkId].name}.`;
+      }
     } else if (wantsPairing) {
       // Mid-flow: tell the client which set of buttons to offer next.
       awaitingPairingChoice = drinkId ? "direction" : "drink";
     }
 
     return Response.json({
-      reply: parsed.reply,
+      reply:
+        (awaitingPairingChoice && PAIRING_QUESTION[awaitingPairingChoice]) ??
+        handoverLine ??
+        parsed.reply,
       itemIds,
       allergyWarning: parsed.allergyWarning,
       filters,

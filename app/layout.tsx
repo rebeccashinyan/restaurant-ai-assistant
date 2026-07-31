@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Playfair_Display } from "next/font/google";
 import SakuraPetals from "./components/SakuraPetals";
+import SiteNav from "./components/site-nav";
 import SocialLinks from "./components/social-links";
 import "./globals.css";
 
@@ -27,23 +27,7 @@ export default function RootLayout({
 
         <div className="relative z-[2]">
         {/* Navbar */}
-        <nav className="sticky top-0 z-50 w-full bg-black text-white">
-          <div className="nav-shell flex items-center justify-between py-6">
-            
-            <div className="flex flex-wrap gap-6 text-xl font-serif md:gap-10 md:text-2xl">
-              <Link href="/">Home</Link>
-              <Link href="/menu">Menu</Link>
-              <Link href="/visit">Visit Us</Link>
-              <Link href="/contact">Contact</Link>
-              <Link href="/ask">Ask Sakura</Link>
-            </div>
-
-            <div className="text-3xl font-serif">
-              Sakura Bloom Matcha
-            </div>
-
-          </div>
-        </nav>
+        <SiteNav />
 
         {/* Page Content */}
         {children}
