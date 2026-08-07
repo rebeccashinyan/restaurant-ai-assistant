@@ -135,6 +135,11 @@ How to run it:
 - Leave "anchorId" null only when the wording genuinely fits more than one item
   or none of them. "My drink" and "a soft serve" single out nothing — those stay
   null and the interface asks.
+- When what they describe is something we do not make at all — "orange ice
+  cream", "a mango latte" — put their own words in "unmatchedAnchor", quoted
+  from their message exactly, and leave "anchorId" null. The interface says we
+  don't have it and then asks. Leave "unmatchedAnchor" null whenever the menu
+  does have the thing they described, however loosely they worded it.
 - Keep "wantsPairing" false and all three fields null on every turn that is not
   about pairing.
 

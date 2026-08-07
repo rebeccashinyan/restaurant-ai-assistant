@@ -7,6 +7,7 @@ import {
   MENU,
   MENU_BY_ID,
   PAIRING_DIRECTIONS,
+  availableInCategory,
   isCategory,
   matchesFilters,
   mergeFilters,
@@ -15,6 +16,7 @@ import {
   partnerCategories,
   type Category,
   type MenuFilters,
+  type MenuItem,
   type PairingDirection,
 } from "../../data/menu";
 import { findPairing, isPairingDirection } from "../_lib/find-pairing";
@@ -154,8 +156,19 @@ const REPLY_SCHEMA = {
             "The kind of pairing they asked for. 'something rich' or 'indulgent' is rich; 'light' or 'refreshing' is light; 'a vegan option' is vegan; 'dairy-free' is dairy-free; 'cheap' or 'affordable' is budget; 'goes well with' is similar; 'contrasting' or 'balance it out' is contrast.",
           enum: [...PAIRING_DIRECTIONS, null],
         },
+        unmatchedAnchor: {
+          type: ["string", "null"],
+          description:
+            "What the guest said they are having, quoted from their own message, when nothing on the menu is that thing — 'orange ice cream' when we make no orange soft serve. Null whenever the menu does have it.",
+        },
       },
-      required: ["wantsPairing", "anchorId", "partnerCategory", "direction"],
+      required: [
+        "wantsPairing",
+        "anchorId",
+        "partnerCategory",
+        "direction",
+        "unmatchedAnchor",
+      ],
       additionalProperties: false,
     },
   },
@@ -231,9 +244,15 @@ const CATEGORY_KEYWORDS: [Category, RegExp][] = [
  * as the anchor just as "with my soft serve" does.
  */
 const ANCHOR_CUE =
-  /\b(?:with|alongside|beside|having|have|had|ordered|order|getting|get|drinking|eating|got)\s+(?:my|the|a|an|this|some|our)?\s*(?:[\w-]+\s+){0,2}$/i;
+  /\b(?:with|alongside|beside|having|have|had|ordered|order|getting|get|drinking|eating|got)\s+(?:my|the|a|an|this|some|our)?\s*((?:[\w-]+\s+){0,2})$/i;
 
-type CategoryMention = { category: Category; index: number; anchorSide: boolean };
+type CategoryMention = {
+  category: Category;
+  index: number;
+  anchorSide: boolean;
+  /** The guest's own phrase for it, adjectives included: "orange ice cream". */
+  phrase: string;
+};
 
 function categoryMentions(text: string): CategoryMention[] {
   const mentions: CategoryMention[] = [];
@@ -243,10 +262,13 @@ function categoryMentions(text: string): CategoryMention[] {
     let match: RegExpExecArray | null;
 
     while ((match = scanner.exec(text)) !== null) {
+      const cue = ANCHOR_CUE.exec(text.slice(Math.max(0, match.index - 32), match.index));
+
       mentions.push({
         category,
         index: match.index,
-        anchorSide: ANCHOR_CUE.test(text.slice(Math.max(0, match.index - 32), match.index)),
+        anchorSide: cue !== null,
+        phrase: `${cue?.[1] ?? ""}${match[0]}`.trim(),
       });
     }
   }
@@ -263,13 +285,11 @@ function categoryMentions(text: string): CategoryMention[] {
 function categorySidesFromText(
   text: string,
   knownAnchorCategory: Category | null,
-): { anchor: Category | null; partner: Category | null } {
+): { anchor: Category | null; anchorPhrase: string | null; partner: Category | null } {
   const mentions = categoryMentions(text);
+  const anchorMention = mentions.find((entry) => entry.anchorSide) ?? null;
 
-  const anchor =
-    knownAnchorCategory ??
-    mentions.find((entry) => entry.anchorSide)?.category ??
-    null;
+  const anchor = knownAnchorCategory ?? anchorMention?.category ?? null;
 
   // A pairing is always across two categories, so the anchor's own side is
   // never what they are asking Sakura to fill.
@@ -277,7 +297,70 @@ function categorySidesFromText(
     mentions.find((entry) => !entry.anchorSide && entry.category !== anchor)
       ?.category ?? null;
 
-  return { anchor, partner };
+  return { anchor, anchorPhrase: anchorMention?.phrase ?? null, partner };
+}
+
+/**
+ * The words in a description that say what kind of thing it is rather than what
+ * is in it. Stripping them leaves the part that has to exist on the menu:
+ * "matcha" out of "matcha ice cream", "orange" out of "orange ice cream".
+ */
+const GENERIC_DESCRIPTION_WORDS =
+  /\b(ice[\s-]?cream|soft[\s-]?serve|softserve|gelato|dessert|desserts|drink|drinks|beverage|latte|tea|cake|pastry|pudding|sorbet|mochi|crepe|flavou?r|flavou?red|the|a|an|my|our|some|this|that|with|and)\b/gi;
+
+/**
+ * Whether anything we actually make answers to a description. The model is the
+ * only thing that can notice a guest naming something off-menu, but it says so
+ * inconsistently — one turn in three it claimed we had no matcha ice cream
+ * while the Sakura Matcha Soft Serve was sitting right there. Telling a guest
+ * we don't sell something we do sell is the worst outcome available here, so
+ * the claim is checked against the menu's own vocabulary before it is repeated.
+ */
+function distinctiveWords(phrase: string): string[] {
+  return [
+    ...new Set(
+      (phrase.toLowerCase().replace(GENERIC_DESCRIPTION_WORDS, " ").match(/[a-z]{3,}/g) ?? [])
+        .flatMap((word) => (word.endsWith("s") ? [word, word.slice(0, -1)] : [word])),
+    ),
+  ];
+}
+
+/** Everything an item can be described by, other than its category. */
+function itemVocabulary(item: MenuItem): string {
+  return [item.name, ...item.primaryFlavors, ...item.ingredients]
+    .join(" ")
+    .toLowerCase();
+}
+
+function itemsAnsweringTo(phrase: string, category: Category | null): MenuItem[] {
+  const words = distinctiveWords(phrase);
+  if (words.length === 0) return [];
+
+  const pool = category
+    ? availableInCategory(category)
+    : MENU.filter((item) => item.available);
+
+  return pool.filter((item) => {
+    const vocabulary = itemVocabulary(item);
+    return words.some((word) => vocabulary.includes(word));
+  });
+}
+
+function menuAnswersTo(phrase: string, category: Category | null): boolean {
+  // Nothing distinctive left to check — not enough to call anything missing.
+  if (distinctiveWords(phrase).length === 0) return true;
+  return itemsAnsweringTo(phrase, category).length > 0;
+}
+
+/**
+ * The item a description can only mean, within the section of the menu the
+ * guest has already pinned down. "Matcha ice cream" leaves one matcha soft
+ * serve; "creamy soft serve" leaves all three and resolves to nothing, which is
+ * the question the interface then asks.
+ */
+function soleItemAnsweringTo(phrase: string, category: Category): string | null {
+  const matches = itemsAnsweringTo(phrase, category);
+  return matches.length === 1 ? matches[0].id : null;
 }
 
 /** Question text is owned by the interface — see PAIRING_QUESTION. */
@@ -410,6 +493,7 @@ export async function POST(request: Request) {
         anchorId: string | null;
         partnerCategory: Category | null;
         direction: PairingDirection | null;
+        unmatchedAnchor: string | null;
       } | null;
     };
 
@@ -493,7 +577,15 @@ export async function POST(request: Request) {
         ? pairingIntent.anchorId
         : null;
 
-    const anchorId = chosenAnchorId ?? anchorFromMessage ?? modelAnchor;
+    // Last resort, and the only one that does not depend on the model holding
+    // its shape: once the guest's own words have pinned the section of the menu,
+    // a flavor they mentioned may leave exactly one item standing.
+    const soleAnchorInCategory = sides.anchor
+      ? soleItemAnsweringTo(messageWithoutNames, sides.anchor)
+      : null;
+
+    const anchorId =
+      chosenAnchorId ?? anchorFromMessage ?? modelAnchor ?? soleAnchorInCategory;
 
     // The item pins the category; failing that, the guest may still have named
     // the part of the menu they are eating from without naming the item.
@@ -512,6 +604,39 @@ export async function POST(request: Request) {
         : null;
 
     const direction = chosenDirection ?? directionFromText(message);
+
+    /**
+     * A guest can name something we simply do not make — "orange ice cream" —
+     * and asking "what are you having?" on top of that ignores what they just
+     * told us. Only the model can judge that no item is the thing they
+     * described, but it does not get to put words in their mouth: the phrase
+     * has to be lifted from their own message, and it cannot be something we
+     * actually sell.
+     */
+    const unmatchedAnchor = (() => {
+      if (anchorId) return null;
+
+      // The guest's own phrase, read straight out of their sentence: a flavor
+      // that leaves nothing standing in the section they named is a gap we can
+      // see without asking the model at all, and it is the same every time.
+      if (
+        sides.anchor &&
+        sides.anchorPhrase &&
+        distinctiveWords(sides.anchorPhrase).length > 0 &&
+        itemsAnsweringTo(sides.anchorPhrase, sides.anchor).length === 0
+      ) {
+        return sides.anchorPhrase;
+      }
+
+      // Otherwise the model may still have spotted one — worded however the
+      // guest worded it, and only if the menu really has no answer to it.
+      const phrase = pairingIntent?.unmatchedAnchor?.trim().replace(/[.,!?]+$/, "");
+      if (!phrase) return null;
+      if (!message.toLowerCase().includes(phrase.toLowerCase())) return null;
+      if (itemIdsMentionedIn(phrase).length > 0) return null;
+      if (menuAnswersTo(phrase, anchorCategory)) return null;
+      return phrase;
+    })();
 
     // Clicking a button is itself a pairing request, whatever the model decided,
     // and so is naming an item and a different part of the menu in one breath.
@@ -619,11 +744,19 @@ export async function POST(request: Request) {
       };
     }
 
+    // A question the guest has half-answered with something we don't make gets
+    // the correction first, then the question. Anything else and the answer
+    // ignores what they just told us.
+    const pairingQuestion = awaitingPairingChoice
+      ? awaitingPairingChoice === "anchor" && unmatchedAnchor
+        ? // Phrased to sit on the guest's own words whether they named a thing
+          // we count ("a mango latte") or a thing we don't ("orange ice cream").
+          `There's no ${unmatchedAnchor} on our menu. ${PAIRING_QUESTION.anchor}`
+        : PAIRING_QUESTION[awaitingPairingChoice]
+      : null;
+
     return Response.json({
-      reply:
-        (awaitingPairingChoice && PAIRING_QUESTION[awaitingPairingChoice]) ??
-        handoverLine ??
-        parsed.reply,
+      reply: pairingQuestion ?? handoverLine ?? parsed.reply,
       itemIds,
       allergyWarning: parsed.allergyWarning,
       filters,
