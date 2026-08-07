@@ -779,9 +779,14 @@ export function mergeFilters(
   return next;
 }
 
-/* ── Dessert pairing ──────────────────────────────────────────────────────
+/* ── Pairing ───────────────────────────────────────────────────────────────
+ * A pairing is an anchor — whatever the guest has already decided on — plus one
+ * item from a different category. Any category can be the anchor: a guest who
+ * has picked a dessert is choosing a drink, and a guest who has picked a soft
+ * serve is choosing either.
+ *
  * Two directions are dietary facts and are resolved entirely in code, so the
- * model has no way to hand back a dessert that violates them. The remaining
+ * model has no way to hand back an item that violates them. The remaining
  * directions are taste judgement, where the model's read genuinely adds
  * value — code narrows the field, the model picks within it.
  */
@@ -805,21 +810,44 @@ export const PAIRING_DIRECTIONS: PairingDirection[] = [
   "vegan",
 ];
 
-const DESSERT_CATEGORIES: Category[] = ["desserts", "soft-serve"];
+export const CATEGORIES: Category[] = ["drinks", "desserts", "soft-serve"];
 
-function availableDesserts(): MenuItem[] {
-  return MENU.filter(
-    (item) => DESSERT_CATEGORIES.includes(item.category) && item.available,
-  );
+/** What the guest sees a category called. Plural for a list, singular for one. */
+export const CATEGORY_LABEL: Record<Category, string> = {
+  drinks: "Drinks",
+  desserts: "Desserts",
+  "soft-serve": "Soft serve",
+};
+
+export const CATEGORY_NOUN: Record<Category, string> = {
+  drinks: "drink",
+  desserts: "dessert",
+  "soft-serve": "soft serve",
+};
+
+export function isCategory(value: unknown): value is Category {
+  return typeof value === "string" && (CATEGORIES as string[]).includes(value);
+}
+
+/** The categories that can be paired with an anchor — every one but its own. */
+export function partnerCategories(anchor: Category): Category[] {
+  return CATEGORIES.filter((category) => category !== anchor);
+}
+
+export function availableInCategory(category: Category): MenuItem[] {
+  return MENU.filter((item) => item.category === category && item.available);
 }
 
 /**
- * The desserts the model is allowed to choose from for a given direction —
- * used to build the request's id enum, so an ineligible id cannot be returned
- * even by mistake.
+ * The items the model is allowed to choose from for a given partner category
+ * and direction — used to build the request's id enum, so an ineligible id
+ * cannot be returned even by mistake.
  */
-export function pairingCandidates(direction: PairingDirection): MenuItem[] {
-  const pool = availableDesserts();
+export function pairingCandidates(
+  category: Category,
+  direction: PairingDirection,
+): MenuItem[] {
+  const pool = availableInCategory(category);
 
   switch (direction) {
     case "dairy-free":
@@ -827,7 +855,7 @@ export function pairingCandidates(direction: PairingDirection): MenuItem[] {
     case "vegan":
       return pool.filter((item) => item.vegan);
     case "budget": {
-      // The cheaper half of the dessert menu, by price.
+      // The cheaper half of that category, by price.
       const sorted = [...pool].sort((a, b) => a.price - b.price);
       return sorted.slice(0, Math.ceil(sorted.length / 2));
     }
@@ -837,4 +865,15 @@ export function pairingCandidates(direction: PairingDirection): MenuItem[] {
     case "rich":
       return pool;
   }
+}
+
+/**
+ * Directions worth offering for a category. Every soft serve we make contains
+ * dairy, so "vegan" and "dairy-free" have nothing to choose from there — a
+ * button that can only end in "nothing matches" should not be on screen.
+ */
+export function pairingDirections(category: Category): PairingDirection[] {
+  return PAIRING_DIRECTIONS.filter(
+    (direction) => pairingCandidates(category, direction).length > 0,
+  );
 }

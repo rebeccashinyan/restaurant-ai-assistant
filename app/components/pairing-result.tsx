@@ -6,25 +6,25 @@ function formatPrice(price: number) {
 }
 
 type PairingResultProps = {
-  drinkId: string;
-  dessertId: string;
+  /** What the guest already had. Shown first, because they chose it first. */
+  anchorId: string;
+  partnerId: string;
   reason: string | null;
 };
 
 /**
- * Shared by the pairing panel and the chatbot so both routes to a pairing look
- * identical. The total is added up here from menu data — the model never sees
- * a price, let alone a sum.
+ * Shared by every route into a pairing so they all look identical. The total is
+ * added up here from menu data — the model never sees a price, let alone a sum.
  */
 export default function PairingResult({
-  drinkId,
-  dessertId,
+  anchorId,
+  partnerId,
   reason,
 }: PairingResultProps) {
-  const drink = MENU_BY_ID[drinkId];
-  const dessert = MENU_BY_ID[dessertId];
+  const anchor = MENU_BY_ID[anchorId];
+  const partner = MENU_BY_ID[partnerId];
 
-  if (!drink || !dessert) return null;
+  if (!anchor || !partner) return null;
 
   return (
     <div>
@@ -35,14 +35,14 @@ export default function PairingResult({
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <RecommendationCard item={drink} />
-        <RecommendationCard item={dessert} />
+        <RecommendationCard item={anchor} />
+        <RecommendationCard item={partner} />
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-[#E8D5D2] pt-4">
         <span className="font-serif text-[#6B5A52]">Total</span>
         <span className="font-serif text-xl">
-          {formatPrice(drink.price + dessert.price)}
+          {formatPrice(anchor.price + partner.price)}
         </span>
       </div>
     </div>

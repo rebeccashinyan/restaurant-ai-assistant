@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 import { describeItem } from "./menu-context";
 import {
+  CATEGORY_NOUN,
   MENU_BY_ID,
   PAIRING_DIRECTIONS,
   pairingCandidates,
+  type Category,
   type PairingDirection,
 } from "../../data/menu";
 import { DIRECTION_GUIDANCE } from "../pair/direction-guidance";
@@ -19,28 +21,42 @@ export function isPairingDirection(value: unknown): value is PairingDirection {
 }
 
 export type PairingOutcome =
-  | { ok: true; drinkId: string; dessertId: string | null; reason: string | null }
+  | { ok: true; anchorId: string; partnerId: string | null; reason: string | null }
   | { ok: false; status: number; error: string };
 
 /**
- * The one place a dessert is actually chosen. The panel and the chatbot both
- * call this, so a pairing reached by typing carries exactly the same guarantee
- * as one reached by clicking: the candidate list is narrowed in code first, and
- * the model can only answer with an id from that list.
+ * The one place the second item is actually chosen. The anchor is whatever the
+ * guest has already settled on — a drink, a dessert, or a soft serve — and the
+ * partner comes from a different category they picked. Every route into a
+ * pairing calls this, so one reached by typing carries exactly the same
+ * guarantee as one reached by clicking: the candidate list is narrowed in code
+ * first, and the model can only answer with an id from that list.
  */
 export async function findPairing(
-  drinkId: string,
+  anchorId: string,
+  partnerCategory: Category,
   direction: PairingDirection,
 ): Promise<PairingOutcome> {
-  const drink = MENU_BY_ID[drinkId];
-  if (!drink || drink.category !== "drinks" || !drink.available) {
-    return { ok: false, status: 400, error: "Pick a drink from the menu first." };
+  const anchor = MENU_BY_ID[anchorId];
+  if (!anchor || !anchor.available) {
+    return { ok: false, status: 400, error: "Pick an item from the menu first." };
   }
 
-  const candidates = pairingCandidates(direction);
+  if (anchor.category === partnerCategory) {
+    return {
+      ok: false,
+      status: 400,
+      error: "A pairing needs two different parts of the menu.",
+    };
+  }
 
+  const candidates = pairingCandidates(partnerCategory, direction);
+
+  // No candidate survives the guest's own condition — every soft serve we make
+  // contains dairy, so a vegan one does not exist. The caller says so plainly
+  // rather than the model talking around it.
   if (candidates.length === 0) {
-    return { ok: true, drinkId, dessertId: null, reason: null };
+    return { ok: true, anchorId, partnerId: null, reason: null };
   }
 
   const candidateIds = candidates.map((item) => item.id);
@@ -48,9 +64,9 @@ export async function findPairing(
   const schema = {
     type: "object",
     properties: {
-      dessertId: {
+      partnerId: {
         type: "string",
-        description: "The dessert you are pairing with the drink.",
+        description: "The item you are pairing with what the guest is having.",
         enum: candidateIds,
       },
       reason: {
@@ -59,19 +75,21 @@ export async function findPairing(
           "One or two sentences on why this pairs well. No prices, no ingredient lists.",
       },
     },
-    required: ["dessertId", "reason"],
+    required: ["partnerId", "reason"],
     additionalProperties: false,
   } as const;
 
-  const prompt = `You are Sakura, pairing a dessert with a drink at Sakura Bloom Matcha.
+  const prompt = `You are Sakura, building a pairing at Sakura Bloom Matcha.
 
-The guest is having:
-${describeItem(drink)}
+The guest has already chosen this ${CATEGORY_NOUN[anchor.category]}:
+${describeItem(anchor)}
+
+They want a ${CATEGORY_NOUN[partnerCategory]} to go with it.
 
 Direction requested: ${direction}
 ${DIRECTION_GUIDANCE[direction]}
 
-Choose exactly one dessert from this list — nothing outside it is eligible:
+Choose exactly one item from this list — nothing outside it is eligible:
 
 ${candidates.map(describeItem).join("\n\n")}
 
@@ -92,12 +110,12 @@ Never state a price or an ingredient list in "reason". Two sentences at most, wa
     });
 
     const parsed = JSON.parse(response.output_text) as {
-      dessertId: string;
+      partnerId: string;
       reason: string;
     };
 
     // Second gate: re-check against the real candidate set, not just the enum.
-    if (!candidateIds.includes(parsed.dessertId)) {
+    if (!candidateIds.includes(parsed.partnerId)) {
       return {
         ok: false,
         status: 500,
@@ -107,8 +125,8 @@ Never state a price or an ingredient list in "reason". Two sentences at most, wa
 
     return {
       ok: true,
-      drinkId,
-      dessertId: parsed.dessertId,
+      anchorId,
+      partnerId: parsed.partnerId,
       reason: parsed.reason,
     };
   } catch (error) {

@@ -1,14 +1,19 @@
 import OpenAI from "openai";
 import {
+  CATEGORIES,
+  CATEGORY_LABEL,
   EMPTY_FILTERS,
   FILTER_KEYS,
   MENU,
   MENU_BY_ID,
   PAIRING_DIRECTIONS,
-  itemsByCategory,
+  isCategory,
   matchesFilters,
   mergeFilters,
   normalizeFilters,
+  pairingDirections,
+  partnerCategories,
+  type Category,
   type MenuFilters,
   type PairingDirection,
 } from "../../data/menu";
@@ -23,7 +28,9 @@ const client = new OpenAI({
 const MAX_HISTORY_MESSAGES = 12;
 
 const ALL_ITEM_IDS = MENU.map((item) => item.id);
-const DRINK_IDS = itemsByCategory("drinks").map((item) => item.id);
+const AVAILABLE_ITEM_IDS = MENU.filter((item) => item.available).map(
+  (item) => item.id,
+);
 
 /**
  * Longest name first, so "Sakura Blossom Milk" matches before a shorter name
@@ -122,26 +129,33 @@ const REPLY_SCHEMA = {
     pairingRequest: {
       type: "object",
       description:
-        "Set when the guest wants a dessert paired with a drink. Each field stays null until they have actually told you that part.",
+        "Set when the guest wants two items paired. Each field stays null until they have actually told you that part.",
       properties: {
         wantsPairing: {
           type: "boolean",
           description:
-            "True whenever the guest is asking for a dessert to go with a drink, even if they have not said which drink or what kind of pairing yet.",
+            "True whenever the guest is asking for something to go with an item, whichever side they started from, even if they have not said which item or what kind of pairing yet.",
         },
-        drinkId: {
+        anchorId: {
           type: ["string", "null"],
-          description: "The drink they want paired.",
-          enum: [...DRINK_IDS, null],
+          description:
+            "The item the guest already has or has decided on — the one they want something to go WITH. Never the item you are being asked to find.",
+          enum: [...AVAILABLE_ITEM_IDS, null],
+        },
+        partnerCategory: {
+          type: ["string", "null"],
+          description:
+            "The part of the menu the guest wants the second item to come from. Must differ from the anchor's own category.",
+          enum: [...CATEGORIES, null],
         },
         direction: {
           type: ["string", "null"],
           description:
-            "The kind of pairing they asked for. 'something rich' or 'indulgent' is rich; 'light' or 'refreshing' is light; 'a vegan dessert' is vegan; 'dairy-free' is dairy-free; 'cheap' or 'affordable' is budget; 'goes well with' is similar; 'contrasting' or 'balance it out' is contrast.",
+            "The kind of pairing they asked for. 'something rich' or 'indulgent' is rich; 'light' or 'refreshing' is light; 'a vegan option' is vegan; 'dairy-free' is dairy-free; 'cheap' or 'affordable' is budget; 'goes well with' is similar; 'contrasting' or 'balance it out' is contrast.",
           enum: [...PAIRING_DIRECTIONS, null],
         },
       },
-      required: ["wantsPairing", "drinkId", "direction"],
+      required: ["wantsPairing", "anchorId", "partnerCategory", "direction"],
       additionalProperties: false,
     },
   },
@@ -179,7 +193,7 @@ const FILTER_KEYWORDS: Record<keyof MenuFilters, RegExp> = {
 };
 
 /**
- * The model reliably identifies which drink the guest named but drops the
+ * The model reliably identifies which item the guest named but drops the
  * direction about half the time — "something rich" and "a vegan dessert" both
  * came back null while "a light dessert" worked. Read it out of the guest's own
  * wording instead. Dietary terms are checked first: they are hard constraints,
@@ -196,20 +210,95 @@ const DIRECTION_KEYWORDS: [PairingDirection, RegExp][] = [
 ];
 
 /**
- * The prompt fixes these two questions word for word and forbids listing the
+ * Words that name a part of the menu without naming an item. Deliberately
+ * concrete: "sweet" is left out because "not too sweet" is a sweetness
+ * condition, not a request for a dessert.
+ */
+const CATEGORY_KEYWORDS: [Category, RegExp][] = [
+  ["soft-serve", /\b(soft[\s-]?serve|softserve|ice[\s-]?cream)\b/],
+  [
+    "desserts",
+    /\b(dessert|desserts|cake|cheesecake|pastry|mochi|nerikiri|pudding|sorbet|crepe)\b/,
+  ],
+  ["drinks", /\b(drink|drinks|beverage|beverages|latte|tea|something to sip)\b/],
+];
+
+/**
+ * A category word sitting after one of these belongs to the item the guest
+ * already has, not the one they are asking for: in "a dessert with my drink",
+ * "drink" is the anchor and "dessert" is what they want. The trailing word slot
+ * carries the guest's own adjectives — "if I have matcha ice cream" has to read
+ * as the anchor just as "with my soft serve" does.
+ */
+const ANCHOR_CUE =
+  /\b(?:with|alongside|beside|having|have|had|ordered|order|getting|get|drinking|eating|got)\s+(?:my|the|a|an|this|some|our)?\s*(?:[\w-]+\s+){0,2}$/i;
+
+type CategoryMention = { category: Category; index: number; anchorSide: boolean };
+
+function categoryMentions(text: string): CategoryMention[] {
+  const mentions: CategoryMention[] = [];
+
+  for (const [category, pattern] of CATEGORY_KEYWORDS) {
+    const scanner = new RegExp(pattern.source, "gi");
+    let match: RegExpExecArray | null;
+
+    while ((match = scanner.exec(text)) !== null) {
+      mentions.push({
+        category,
+        index: match.index,
+        anchorSide: ANCHOR_CUE.test(text.slice(Math.max(0, match.index - 32), match.index)),
+      });
+    }
+  }
+
+  return mentions.sort((a, b) => a.index - b.index);
+}
+
+/**
+ * Which side of the menu each half of the request is on. A guest can name the
+ * part of the menu they are already eating from without naming the item —
+ * "what dessert goes with my soft serve" pins the anchor to a category and no
+ * further, which is still enough to keep the question that follows short.
+ */
+function categorySidesFromText(
+  text: string,
+  knownAnchorCategory: Category | null,
+): { anchor: Category | null; partner: Category | null } {
+  const mentions = categoryMentions(text);
+
+  const anchor =
+    knownAnchorCategory ??
+    mentions.find((entry) => entry.anchorSide)?.category ??
+    null;
+
+  // A pairing is always across two categories, so the anchor's own side is
+  // never what they are asking Sakura to fill.
+  const partner =
+    mentions.find((entry) => !entry.anchorSide && entry.category !== anchor)
+      ?.category ?? null;
+
+  return { anchor, partner };
+}
+
+/** Question text is owned by the interface — see PAIRING_QUESTION. */
+type PairingChoiceKind = "anchor" | "partner" | "direction";
+
+/**
+ * The prompt fixes these questions word for word and forbids listing the
  * options, because the options are already on the buttons directly below. The
  * model keeps appending them anyway — "would you prefer something rich, light,
  * or similar?" — which makes the guest read the same list from two places.
  * The wording is not a judgement call, so the interface owns it outright.
  */
-const PAIRING_QUESTION: Record<"drink" | "direction", string> = {
-  drink: "Which drink are you having?",
+const PAIRING_QUESTION: Record<PairingChoiceKind, string> = {
+  anchor: "What are you having?",
+  partner: "What would you like alongside it?",
   direction: "What kind of pairing would you like?",
 };
 
 /** Backstop for a pairing request the model failed to flag. */
 const PAIRING_INTENT =
-  /\b(pair|pairing|goes? (well )?with|to go with|match(es)? my|alongside)\b/i;
+  /\b(pair|pairing|goes? (well )?with|to go with|with my|match(es)? my|alongside)\b/i;
 
 function directionFromText(text: string): PairingDirection | null {
   for (const [direction, pattern] of DIRECTION_KEYWORDS) {
@@ -246,7 +335,8 @@ export async function POST(request: Request) {
   let history: ChatMessage[];
   let currentFilters: Partial<MenuFilters>;
   let removedFilters: (keyof MenuFilters)[];
-  let chosenDrinkId: string | null;
+  let chosenAnchorId: string | null;
+  let chosenPartnerCategory: Category | null;
   let chosenDirection: PairingDirection | null;
 
   try {
@@ -266,10 +356,14 @@ export async function POST(request: Request) {
     // What the guest clicked. An explicit choice is exact, so it outranks
     // anything the model infers from the sentence.
     const chosen = body.pairingRequest;
-    chosenDrinkId =
-      typeof chosen?.drinkId === "string" && DRINK_IDS.includes(chosen.drinkId)
-        ? chosen.drinkId
+    chosenAnchorId =
+      typeof chosen?.anchorId === "string" &&
+      AVAILABLE_ITEM_IDS.includes(chosen.anchorId)
+        ? chosen.anchorId
         : null;
+    chosenPartnerCategory = isCategory(chosen?.partnerCategory)
+      ? chosen.partnerCategory
+      : null;
     chosenDirection = isPairingDirection(chosen?.direction)
       ? chosen.direction
       : null;
@@ -313,7 +407,8 @@ export async function POST(request: Request) {
       filters: Partial<MenuFilters>;
       pairingRequest: {
         wantsPairing: boolean;
-        drinkId: string | null;
+        anchorId: string | null;
+        partnerCategory: Category | null;
         direction: PairingDirection | null;
       } | null;
     };
@@ -349,31 +444,84 @@ export async function POST(request: Request) {
       Object.assign(filters, mergeFilters(EMPTY_FILTERS, currentFilters));
     }
 
-    // Once the guest has named both a drink and a direction, the pairing runs
-    // through the same code the panel uses — the chat model never picks the
-    // dessert itself, it only collects the two inputs.
-    const request = parsed.pairingRequest;
+    // Once the guest has given an anchor, a side of the menu, and a direction,
+    // the pairing runs through shared code — the chat model never picks the
+    // second item itself, it only helps collect the three inputs.
+    const pairingIntent = parsed.pairingRequest;
 
-    // A clicked value is exact; the model's reading is the fallback.
-    const drinkId = chosenDrinkId ?? request?.drinkId ?? null;
+    // Items the guest named in this message, longest name first. A name typed
+    // out is the strongest signal available: it cannot be a hallucination, and
+    // it survives the model dropping the field.
+    const namedInMessage = itemIdsMentionedIn(message);
 
-    // A named drink is the model's own signal that this turn is about pairing,
-    // so reading the direction out of the wording here cannot fire by accident
-    // on an ordinary "I want something light" request.
-    // The model's own reading is deliberately not a source here. Asked to fill
-    // this field it will invent a direction the guest never gave — a click on
-    // "Ceremonial Matcha" came back with a finished pairing, skipping the
-    // question entirely. A click is exact and the guest's own wording is
-    // evidence; anything else means we do not know yet, and asking is the
-    // right failure.
+    // Category words are read from the sentence with the named items removed,
+    // so "a drink with my Sakura Matcha Soft Serve" does not count its own
+    // anchor's name as a request for soft serve.
+    const messageWithoutNames = namedInMessage.reduce(
+      (text, id) =>
+        text.replace(
+          new RegExp(
+            MENU_BY_ID[id].name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            "gi",
+          ),
+          " ",
+        ),
+      message,
+    );
+
+    const anchorFromMessage =
+      namedInMessage.find((id) => MENU_BY_ID[id].available) ?? null;
+
+    const sides = categorySidesFromText(
+      messageWithoutNames,
+      chosenAnchorId
+        ? MENU_BY_ID[chosenAnchorId].category
+        : anchorFromMessage
+          ? MENU_BY_ID[anchorFromMessage].category
+          : null,
+    );
+
+    // A clicked value is exact; the guest's own typing is next; the model's
+    // reading is the last resort. It is the only source that can turn "matcha
+    // ice cream" into the Sakura Matcha Soft Serve, so it is worth having — but
+    // only when it agrees with the sides the guest's own words already fixed.
+    const modelAnchor =
+      pairingIntent?.anchorId &&
+      AVAILABLE_ITEM_IDS.includes(pairingIntent.anchorId) &&
+      MENU_BY_ID[pairingIntent.anchorId].category !== sides.partner &&
+      (!sides.anchor || MENU_BY_ID[pairingIntent.anchorId].category === sides.anchor)
+        ? pairingIntent.anchorId
+        : null;
+
+    const anchorId = chosenAnchorId ?? anchorFromMessage ?? modelAnchor;
+
+    // The item pins the category; failing that, the guest may still have named
+    // the part of the menu they are eating from without naming the item.
+    const anchorCategory = anchorId ? MENU_BY_ID[anchorId].category : sides.anchor;
+
+    // The model's own reading is deliberately not a source for the remaining
+    // two fields. Asked to fill them it will invent an answer the guest never
+    // gave — a click on "Ceremonial Matcha" came back with a finished pairing,
+    // skipping the questions entirely. A click is exact and the guest's own
+    // wording is evidence; anything else means we do not know yet, and asking
+    // is the right failure.
+    const partnerCandidate = chosenPartnerCategory ?? sides.partner;
+    const partnerCategory =
+      partnerCandidate && partnerCandidate !== anchorCategory
+        ? partnerCandidate
+        : null;
+
     const direction = chosenDirection ?? directionFromText(message);
 
-    // Clicking a button is itself a pairing request, whatever the model decided.
+    // Clicking a button is itself a pairing request, whatever the model decided,
+    // and so is naming an item and a different part of the menu in one breath.
     const wantsPairing =
-      Boolean(request?.wantsPairing) ||
-      Boolean(chosenDrinkId) ||
+      Boolean(pairingIntent?.wantsPairing) ||
+      Boolean(chosenAnchorId) ||
+      Boolean(chosenPartnerCategory) ||
       Boolean(chosenDirection) ||
-      PAIRING_INTENT.test(message);
+      PAIRING_INTENT.test(message) ||
+      Boolean(sides.anchor && sides.partner);
 
     // Union with names found in the prose itself — see itemIdsMentionedIn.
     const candidateIds = new Set([
@@ -386,9 +534,9 @@ export async function POST(request: Request) {
     // contradiction on screen — the panel wins, not the prose.
     //
     // A pairing turn renders its own two items, with a total, in the pairing
-    // block. Reading names back out of the sentence there produced the drink
-    // and the dessert a second time, stacked above the block that already
-    // showed them — so a pairing turn contributes no cards of its own.
+    // block. Reading names back out of the sentence there produced both items a
+    // second time, stacked above the block that already showed them — so a
+    // pairing turn contributes no cards of its own.
     const itemIds = wantsPairing
       ? []
       : [...candidateIds]
@@ -396,32 +544,79 @@ export async function POST(request: Request) {
           .filter((id) => matchesFilters(MENU_BY_ID[id], filters));
 
     let pairing = null;
-    let awaitingPairingChoice: "drink" | "direction" | null = null;
+    let awaitingPairingChoice: PairingChoiceKind | null = null;
+    /** The options behind the question being asked, if one is being asked. */
+    let pairingChoiceOptions: {
+      categories: Category[];
+      directions: PairingDirection[];
+    } | null = null;
     /** Set when the interface, not the model, owns the sentence for this turn. */
     let handoverLine: string | null = null;
+    /**
+     * True once all three inputs have been spent on an attempt. A dead end is
+     * as final as a pairing: keeping the inputs would re-run the same failing
+     * request on the guest's next message.
+     */
+    let pairingSettled = false;
 
-    if (drinkId && direction) {
-      const outcome = await findPairing(drinkId, direction);
-      if (outcome.ok && outcome.dessertId) {
+    if (wantsPairing && anchorId && partnerCategory && direction) {
+      pairingSettled = true;
+      const outcome = await findPairing(anchorId, partnerCategory, direction);
+
+      if (!outcome.ok) {
+        handoverLine = outcome.error;
+      } else if (outcome.partnerId) {
         pairing = {
-          drinkId: outcome.drinkId,
-          dessertId: outcome.dessertId,
+          anchorId: outcome.anchorId,
+          partnerId: outcome.partnerId,
           reason: outcome.reason,
         };
-      }
 
-      // The prompt asks for a short handover line and no dessert names, since
-      // the dessert has not been chosen yet at the point the sentence is
-      // written. The model guesses anyway — it named two desserts while the
-      // block below it showed a third. The block carries its own reason, which
-      // is written after the choice and is therefore about the right dessert,
-      // so the line above it only has to hand over.
-      if (pairing) {
-        handoverLine = `Here is what I would pair with your ${MENU_BY_ID[drinkId].name}.`;
+        // The prompt asks for a short handover line and no item names, since
+        // the second item has not been chosen yet at the point the sentence is
+        // written. The model guesses anyway — it named two desserts while the
+        // block below it showed a third. The block carries its own reason,
+        // which is written after the choice and is therefore about the right
+        // item, so the line above it only has to hand over.
+        handoverLine = `Here is what I would pair with your ${MENU_BY_ID[anchorId].name}.`;
+      } else {
+        // Nothing in that category can satisfy the condition — every soft serve
+        // we make contains dairy, so a vegan one does not exist. Say so rather
+        // than letting the model talk around an empty result.
+        handoverLine =
+          `Nothing on our ${CATEGORY_LABEL[partnerCategory].toLowerCase()} list is ${direction}, ` +
+          "so I can't build that pairing.";
       }
     } else if (wantsPairing) {
-      // Mid-flow: tell the client which set of buttons to offer next.
-      awaitingPairingChoice = drinkId ? "direction" : "drink";
+      // Mid-flow: tell the client which question is on the table and which
+      // buttons belong under it.
+      awaitingPairingChoice = !anchorId
+        ? "anchor"
+        : !partnerCategory
+          ? "partner"
+          : "direction";
+
+      pairingChoiceOptions = {
+        // Narrow the anchor question by whatever the guest has already told us.
+        // "What dessert goes with my soft serve" names the section they are
+        // eating from, so only that section is offered; failing that, anything
+        // but the side they asked Sakura to fill, which their answer cannot
+        // contradict.
+        categories:
+          awaitingPairingChoice === "anchor"
+            ? anchorCategory
+              ? [anchorCategory]
+              : partnerCategory
+                ? partnerCategories(partnerCategory)
+                : CATEGORIES
+            : awaitingPairingChoice === "partner" && anchorCategory
+              ? partnerCategories(anchorCategory)
+              : [],
+        directions:
+          awaitingPairingChoice === "direction" && partnerCategory
+            ? pairingDirections(partnerCategory)
+            : [],
+      };
     }
 
     return Response.json({
@@ -434,7 +629,10 @@ export async function POST(request: Request) {
       filters,
       pairing,
       awaitingPairingChoice,
-      pairingRequest: { drinkId, direction },
+      pairingChoiceOptions,
+      pairingRequest: pairingSettled
+        ? { anchorId: null, partnerCategory: null, direction: null }
+        : { anchorId, partnerCategory, direction },
     });
   } catch (error) {
     console.error("Ask Sakura API error:", error);

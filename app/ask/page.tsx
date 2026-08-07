@@ -16,14 +16,30 @@ import {
   FILTER_KEYS,
   getItem,
   mergeFilters,
+  type Category,
   type MenuFilters,
   type PairingDirection,
 } from "../data/menu";
 
 type Pairing = {
-  drinkId: string;
-  dessertId: string;
+  /** What the guest already had; the partner is what Sakura chose to go with it. */
+  anchorId: string;
+  partnerId: string;
   reason: string | null;
+};
+
+/** What the guest has settled so far. A pairing needs all three. */
+type PairingDraft = {
+  anchorId: string | null;
+  partnerCategory: Category | null;
+  direction: PairingDirection | null;
+};
+
+type PairingChoiceKind = "anchor" | "partner" | "direction";
+
+type PairingChoiceOptions = {
+  categories: Category[];
+  directions: PairingDirection[];
 };
 
 type Message = {
@@ -32,10 +48,12 @@ type Message = {
   /** Menu items the reply refers to. Cards are rendered from local data. */
   itemIds?: string[];
   allergyWarning?: boolean;
-  /** Set once the guest has given both a drink and a pairing direction. */
+  /** Set once the guest has given an anchor, a category, and a direction. */
   pairing?: Pairing | null;
-  /** Which set of pairing buttons to offer under this reply, if any. */
-  awaitingPairingChoice?: "drink" | "direction" | null;
+  /** Which pairing question this reply asked, if any. */
+  awaitingPairingChoice?: PairingChoiceKind | null;
+  /** The buttons that belong under that question. */
+  pairingChoiceOptions?: PairingChoiceOptions | null;
 };
 
 const suggestedPrompts = [
@@ -70,10 +88,11 @@ export default function AskPage() {
   /** Tags the guest took off by hand, so the model cannot quietly restore them. */
   const [removedFilters, setRemovedFilters] = useState<(keyof MenuFilters)[]>([]);
   /** The pairing being assembled across turns. Reset once a pairing lands. */
-  const [pairingDraft, setPairingDraft] = useState<{
-    drinkId: string | null;
-    direction: PairingDirection | null;
-  }>({ drinkId: null, direction: null });
+  const [pairingDraft, setPairingDraft] = useState<PairingDraft>({
+    anchorId: null,
+    partnerCategory: null,
+    direction: null,
+  });
 
   const removeFilter = (key: keyof MenuFilters) => {
     setFilters((prev) => ({ ...prev, [key]: null }));
@@ -88,7 +107,7 @@ export default function AskPage() {
   const handleSend = async (
     presetMessage?: string,
     /** Set when the guest clicked a pairing button instead of typing. */
-    chosen?: { drinkId?: string; direction?: PairingDirection },
+    chosen?: Partial<PairingDraft>,
   ) => {
     const currentMessage = (presetMessage ?? userMessage).trim();
 
@@ -100,9 +119,10 @@ export default function AskPage() {
     const history = messages.map(({ role, content }) => ({ role, content }));
 
     // Carry forward whatever the flow has already established, so clicking a
-    // direction still knows which drink was picked a turn ago.
-    const pairingRequest = {
-      drinkId: chosen?.drinkId ?? pairingDraft.drinkId,
+    // direction still knows which item was picked two turns ago.
+    const pairingRequest: PairingDraft = {
+      anchorId: chosen?.anchorId ?? pairingDraft.anchorId,
+      partnerCategory: chosen?.partnerCategory ?? pairingDraft.partnerCategory,
       direction: chosen?.direction ?? pairingDraft.direction,
     };
 
@@ -145,19 +165,18 @@ export default function AskPage() {
           allergyWarning: data.allergyWarning ?? false,
           pairing: data.pairing ?? null,
           awaitingPairingChoice: data.awaitingPairingChoice ?? null,
+          pairingChoiceOptions: data.pairingChoiceOptions ?? null,
         },
       ]);
 
-      // A finished pairing clears the slate so the next request starts fresh;
-      // an unfinished one keeps what has been chosen so far.
-      setPairingDraft(
-        data.pairing
-          ? { drinkId: null, direction: null }
-          : {
-              drinkId: data.pairingRequest?.drinkId ?? null,
-              direction: data.pairingRequest?.direction ?? null,
-            },
-      );
+      // The server clears the draft itself once the three inputs have been
+      // spent, whether that ended in a pairing or in a dead end, so this only
+      // has to mirror what came back.
+      setPairingDraft({
+        anchorId: data.pairingRequest?.anchorId ?? null,
+        partnerCategory: data.pairingRequest?.partnerCategory ?? null,
+        direction: data.pairingRequest?.direction ?? null,
+      });
 
       // The reply is authoritative: the server has already stripped anything the
       // guest took off, so it replaces the panel rather than adding to it.
@@ -262,9 +281,18 @@ export default function AskPage() {
                       {showChoices && (
                         <PairingChoices
                           kind={message.awaitingPairingChoice!}
+                          categories={
+                            message.pairingChoiceOptions?.categories ?? []
+                          }
+                          directions={
+                            message.pairingChoiceOptions?.directions ?? []
+                          }
                           disabled={isLoading}
-                          onChooseDrink={(drinkId, label) =>
-                            handleSend(label, { drinkId })
+                          onChooseAnchor={(anchorId, label) =>
+                            handleSend(label, { anchorId })
+                          }
+                          onChoosePartner={(partnerCategory, label) =>
+                            handleSend(label, { partnerCategory })
                           }
                           onChooseDirection={(direction, label) =>
                             handleSend(label, { direction })
@@ -275,8 +303,8 @@ export default function AskPage() {
                       {message.pairing && (
                         <div className="mt-4 rounded-2xl bg-white/60 p-5">
                           <PairingResult
-                            drinkId={message.pairing.drinkId}
-                            dessertId={message.pairing.dessertId}
+                            anchorId={message.pairing.anchorId}
+                            partnerId={message.pairing.partnerId}
                             reason={message.pairing.reason}
                           />
                         </div>
