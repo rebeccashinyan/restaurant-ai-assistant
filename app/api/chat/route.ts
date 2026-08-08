@@ -188,6 +188,16 @@ type ChatMessage = {
 };
 
 /**
+ * "minMatcha" is a floor on strength, not an interest in the flavour. Naming
+ * matcha is not asking for a strong one — a guest who said "matcha and creamy"
+ * came back with minMatcha 4, which then hid two of the three drinks Sakura had
+ * just named in the same sentence. Setting the floor takes a word about
+ * intensity, not the word "matcha".
+ */
+const MATCHA_STRENGTH_WORDS =
+  /\b(strong|stronger|strongest|intense|bold|potent|robust|punchy|earthy|grassy|matcha-forward|ceremonial|pure|deep|rich|full|extra|very|really|super|max|most)\b/i;
+
+/**
  * A tag the guest removed by hand comes back only when they raise the subject
  * again in their own words. Asking the model which conditions were "just
  * mentioned" does not work — it reports anything still visible in the history —
@@ -514,6 +524,15 @@ export async function POST(request: Request) {
       if (isNew && !FILTER_KEYWORDS[key].test(message)) filters[key] = null;
     }
 
+    // Same rule, stricter word list — see MATCHA_STRENGTH_WORDS.
+    if (
+      filters.minMatcha !== null &&
+      currentFilters.minMatcha == null &&
+      !MATCHA_STRENGTH_WORDS.test(message)
+    ) {
+      filters.minMatcha = null;
+    }
+
     // Asking where the café is does not withdraw the preferences already on
     // screen, but the model returns all-null filters for a café question and
     // that read as the guest clearing them. Changing the subject is not the
@@ -763,9 +782,16 @@ export async function POST(request: Request) {
       pairing,
       awaitingPairingChoice,
       pairingChoiceOptions,
-      pairingRequest: pairingSettled
-        ? { anchorId: null, partnerCategory: null, direction: null }
-        : { anchorId, partnerCategory, direction },
+      // Only an open pairing carries anything to the next turn. These values are
+      // read back as exact choices — the same standing as a clicked button — so
+      // a turn that was never about pairing must not leave any behind. "Help me
+      // choose a drink" reads as partnerCategory "drinks" here; handing that
+      // forward made the next message look like a pairing already underway, and
+      // Sakura answered "matcha and creamy" with "What are you having?".
+      pairingRequest:
+        pairingSettled || !wantsPairing
+          ? { anchorId: null, partnerCategory: null, direction: null }
+          : { anchorId, partnerCategory, direction },
     });
   } catch (error) {
     console.error("Ask Sakura API error:", error);

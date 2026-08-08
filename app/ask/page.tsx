@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FaqAccordionItem from "../components/faq-accordion-item";
 import FilterPanel from "../components/filter-panel";
 import PageHero from "../components/page-hero";
@@ -10,6 +10,7 @@ import PairingResult from "../components/pairing-result";
 import RecommendationCard from "../components/recommendation-card";
 import RevealOnce from "../components/reveal-once";
 import TypingMessage from "../components/typing-message";
+import { useReducedMotion } from "../components/use-reduced-motion";
 import { FAQ } from "../data/cafe-info";
 import {
   EMPTY_FILTERS,
@@ -93,6 +94,22 @@ export default function AskPage() {
     partnerCategory: null,
     direction: null,
   });
+
+  const transcriptRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
+
+  // The card no longer grows, so a new reply arrives below the fold unless the
+  // transcript follows it down. Keyed on the turn count and the thinking state:
+  // the guest's own message, the "thinking" line, and the answer each scroll.
+  useEffect(() => {
+    const transcript = transcriptRef.current;
+    if (!transcript) return;
+
+    transcript.scrollTo({
+      top: transcript.scrollHeight,
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  }, [messages, isLoading, reducedMotion]);
 
   const removeFilter = (key: keyof MenuFilters) => {
     setFilters((prev) => ({ ...prev, [key]: null }));
@@ -210,11 +227,16 @@ export default function AskPage() {
         </RevealOnce>
 
         <RevealOnce delay={140} elevation>
-          <div className="flex min-h-[420px] flex-col overflow-hidden rounded-3xl bg-[#F7F3F0] md:min-h-[480px]">
+          {/* Fixed height: the transcript scrolls inside the card rather than
+              growing it, so the page below stays where the guest left it. */}
+          <div className="flex h-[560px] flex-col overflow-hidden rounded-3xl bg-[#F7F3F0] md:h-[640px]">
             <div className="min-h-[56px] shrink-0 bg-[#E8D5D2] md:min-h-[64px]" />
 
-            <div className="flex flex-1 flex-col p-8 md:p-10">
-              <div className="flex-1 space-y-6">
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div
+                ref={transcriptRef}
+                className="chat-scroll min-h-0 flex-1 space-y-6 overflow-y-auto px-8 pt-8 md:px-10 md:pt-10"
+              >
                 <TypingMessage text={welcomeText} />
 
                 {messages.length === 0 && !isLoading && (
@@ -322,7 +344,7 @@ export default function AskPage() {
                 )}
               </div>
 
-              <div className="mt-8 flex gap-4">
+              <div className="flex shrink-0 gap-4 px-8 pb-8 pt-6 md:px-10 md:pb-10">
                 <input
                   type="text"
                   placeholder="Ask about drinks, desserts, or visiting us..."
