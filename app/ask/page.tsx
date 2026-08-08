@@ -69,7 +69,7 @@ const suggestedPrompts = [
 ];
 
 const welcomeText =
-  "Hi! I'm Sakura, your AI assistant. Ask me about our matcha drinks and seasonal desserts, or about visiting — opening hours, where to find us, and how to reach us.";
+  "Hi! I'm Sakura, your AI matcha guide. I can help you find a drink you'll love, pair it with a dessert, or answer questions about our menu and your visit.";
 
 const INPUT_CLASS =
   "flex-1 rounded-xl border border-transparent bg-white px-5 py-4 font-serif text-[#1F1814] outline-none transition-[border-color,box-shadow] duration-300 ease-out hover:border-[#C09F9D]/30 hover:shadow-[0_4px_16px_rgba(192,157,157,0.08)] focus:border-[#C09F9D]/50 focus:shadow-[0_6px_20px_rgba(192,157,157,0.14)]";
