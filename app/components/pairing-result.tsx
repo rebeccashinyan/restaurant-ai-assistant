@@ -41,7 +41,7 @@ export default function PairingResult({
 
       <div className="mt-4 flex items-center justify-between border-t border-[#E8D5D2] pt-4">
         <span className="font-serif text-[#6B5A52]">Total</span>
-        <span className="font-serif text-xl">
+        <span className="font-serif text-xl text-[#1F1814]">
           {formatPrice(anchor.price + partner.price)}
         </span>
       </div>
