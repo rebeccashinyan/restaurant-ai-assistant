@@ -8,24 +8,21 @@ const reviews = [
     title: "Creative Director",
     quote:
       "One of the most calming cafés I've been to in NYC. The interior feels so intentional and peaceful, and the matcha quality is actually amazing — not overly sweet like most places. I ordered the Strawberry Sakura Matcha and the Sakura Nerikiri, and both looked almost too pretty to eat.",
-    image:
-      "https://images.unsplash.com/photo-1515378791214-9ef2b66d7852?w=800&h=600&fit=crop",
+    image: "/images/review-emily.png",
   },
   {
     name: "Daniel K.",
     title: "Product Manager",
     quote:
       "Sakura Bloom feels less like a café and more like a quiet little escape from the city. The Cloud Matcha was incredibly smooth, and the soft serve with mochi bites was honestly one of the best desserts I've had recently. You can tell every detail is carefully designed.",
-    image:
-      "https://images.unsplash.com/photo-1554048612-3879760701e0?w=800&h=600&fit=crop",
+    image: "/images/review-daniel.png",
   },
   {
     name: "Sophia L.",
     title: "Investment Banking Analyst",
     quote:
       "I came here because of the aesthetic photos online, but the drinks genuinely exceeded my expectations. The Hojicha Blossom Latte had such a rich roasted flavor, and the atmosphere made me want to stay for hours. Perfect place for studying, catching up with friends, or just slowing down for a bit.",
-    image:
-      "https://images.unsplash.com/photo-1524502397800-2e58a319a569?w=800&h=600&fit=crop",
+    image: "/images/review-sophia.png",
   },
 ];
 
@@ -178,14 +175,16 @@ export default function ReviewsSection() {
                 >
                   <img
                     src={item.image}
-                    alt={`${item.name} at a café`}
+                    alt=""
                     className="absolute inset-0 h-full w-full object-cover object-center"
                   />
+                  {/* Same 30% scrim the hero uses, so the white name stays legible
+                      on these light photographs. Unselected cards sit darker. */}
                   <div
                     className={
                       isActive
-                        ? "absolute inset-0 bg-black/15 transition-colors duration-200"
-                        : "absolute inset-0 bg-black/30 transition-colors duration-200"
+                        ? "absolute inset-0 bg-black/30 transition-colors duration-200"
+                        : "absolute inset-0 bg-black/50 transition-colors duration-200"
                     }
                   />
                   <span className="absolute bottom-4 left-4 font-serif text-sm text-white md:text-base">
