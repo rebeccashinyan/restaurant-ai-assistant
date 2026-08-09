@@ -118,9 +118,9 @@ export default function ReviewsSection() {
         className={entranceClasses}
         style={inView && !reducedMotion ? { transitionDelay: "0ms" } : undefined}
       >
-        <h2 className="mb-4 font-serif text-4xl md:text-5xl">Users Review</h2>
+        <h2 className="mb-4 font-serif text-4xl md:text-5xl">Customers Review</h2>
         <p className="mb-14 font-serif text-3xl uppercase tracking-wide md:text-5xl">
-          20K+ Happy Users Says About Our Product
+          20K+ Happy Customers Say About Our Product
         </p>
       </div>
 

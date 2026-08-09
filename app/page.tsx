@@ -10,14 +10,20 @@ const storyImage = "/images/our-story.png";
 
 const missionImage = "/images/our-mission.png";
 
+// Eleven distinct photographs. The gallery splits them across two marquee rows
+// with no overlap, so nothing shows up twice on screen at once.
 const galleryImages = [
   "/images/gallery-1.png",
   "/images/gallery-2.png",
   "/images/gallery-3.png",
   "/images/gallery-4.png",
-  "/images/gallery-5.png",
+  "/images/gallery-8.png",
   "/images/gallery-6.png",
   "/images/gallery-7.png",
+  "/images/gallery-9.png",
+  "/images/hero-pic.png",
+  "/images/menu-drinks.png",
+  "/images/menu-desserts.png",
 ];
 
 export default function Home() {

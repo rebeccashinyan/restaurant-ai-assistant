@@ -41,8 +41,11 @@ function MarqueeRow({
 }
 
 export default function GallerySection({ images }: GalleryMarqueeProps) {
-  const topRow = images.slice(0, 10);
-  const bottomRow = [...images.slice(0, 10)].reverse();
+  // Split rather than mirror — sharing one set between both rows meant every
+  // photograph appeared twice on screen.
+  const split = Math.ceil(images.length / 2);
+  const topRow = images.slice(0, split);
+  const bottomRow = images.slice(split);
 
   return (
     <section className="overflow-hidden py-24">
