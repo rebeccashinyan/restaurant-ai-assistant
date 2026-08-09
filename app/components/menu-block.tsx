@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** Fills the block height so the photo column tracks the card, however long it gets. */
 /**
  * From md up the photo is taken out of flow so it never drives the row height —
- * the card decides how tall the block is and the photo fills whatever that is.
+ * the card decides how tall the block is and the photo sits centered against it,
+ * a little shorter than the card so it reads as an inset panel.
  */
 const MENU_IMAGE_CLASS =
-  "h-[320px] w-full rounded-2xl object-cover md:absolute md:inset-0 md:h-full";
+  "h-[320px] w-full rounded-2xl object-cover md:absolute md:inset-x-0 md:top-1/2 md:h-[80%] md:-translate-y-1/2";
 const REVEAL_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 const ENTER_OFFSET_PX = 64;
 
