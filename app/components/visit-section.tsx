@@ -1,16 +1,17 @@
 import { CAFE } from "../data/cafe-info";
 import RevealFrom from "./reveal-from";
-import RevealLine from "./reveal-line";
 import VisitMap from "./visit-map";
 
 export default function VisitSection() {
   return (
     <section className="page-shell py-20 md:py-24">
-      <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[3fr_7fr] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-16 lg:gap-y-6 xl:gap-x-20">
+      {/* 4fr/7fr mirrors the Contact page's 7fr/4fr split, so the details column
+          carries the same weight on both pages. */}
+      <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[4fr_7fr] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-16 lg:gap-y-6 xl:gap-x-20">
         {/* Left — top-aligned with the map */}
         <RevealFrom
           direction="left"
-          className="order-1 min-w-0 lg:order-none lg:col-start-1 lg:row-start-2 lg:ml-auto lg:max-w-[300px] lg:pl-8 xl:pl-12"
+          className="order-1 min-w-0 lg:order-none lg:col-start-1 lg:row-start-2 lg:pl-24"
         >
           <div className="space-y-10 font-serif">
             <div>
@@ -22,7 +23,10 @@ export default function VisitSection() {
               </p>
             </div>
 
-            <RevealLine />
+            <hr
+              aria-hidden
+              className="h-px border-0 bg-[#E4DBCA]/25 lg:max-w-[330px]"
+            />
 
             <div>
               <p className="mb-3 text-xl font-bold text-white">Opening Hours</p>
