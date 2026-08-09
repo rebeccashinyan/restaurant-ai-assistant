@@ -343,7 +343,7 @@ export const MENU: MenuItem[] = [
     caffeine: "none",
     temperature: "ambient",
     texture: ["smooth", "soft", "dense"],
-    pairsWith: ["ceremonial-matcha", "genmaicha-cream-latte"],
+    pairsWith: ["ceremonial-matcha"],
     ingredients: [
       "white bean paste",
       "glutinous rice flour",
@@ -450,7 +450,7 @@ export const MENU: MenuItem[] = [
     caffeine: "low",
     temperature: "chilled",
     texture: ["silky", "soft", "wobbly"],
-    pairsWith: ["cloud-matcha", "genmaicha-cream-latte"],
+    pairsWith: ["cloud-matcha"],
     ingredients: ["roasted hojicha", "whole milk", "cream", "eggs", "brown sugar"],
     allergens: ["milk", "eggs"],
     containsDairy: true,
