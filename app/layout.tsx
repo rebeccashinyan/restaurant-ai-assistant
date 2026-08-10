@@ -49,7 +49,8 @@ export default function RootLayout({
                 <input
                   type="email"
                   placeholder="Email"
-                  className="w-full max-w-xl rounded-full px-6 py-4 text-xl outline-none"
+                  aria-label="Email address"
+                  className="w-full max-w-xl rounded-full border border-transparent bg-white px-6 py-4 text-xl text-[#1F1814] outline-none transition-[border-color,box-shadow] duration-300 ease-out placeholder:text-[#8A7A70] hover:border-[#C09F9D]/35 hover:shadow-[0_4px_18px_rgba(192,157,157,0.12)] focus-visible:border-[#C09F9D]/55 focus-visible:shadow-[0_6px_22px_rgba(192,157,157,0.18)]"
                 />
 
                 <button className="rounded-full bg-black px-8 py-4 text-white text-xl">
