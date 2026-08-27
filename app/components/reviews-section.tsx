@@ -126,7 +126,7 @@ export default function ReviewsSection() {
           className={`min-w-0 ${entranceClasses}`}
           style={inView && !reducedMotion ? { transitionDelay: "120ms" } : undefined}
         >
-          <div className="flex min-h-[420px] flex-col rounded-3xl bg-[#F7F3ED] p-10 text-[#1F1814] md:min-h-[480px] md:p-12">
+          <div className="flex min-h-[420px] flex-col rounded-3xl bg-[#E4DBCA] p-10 text-[#1F1814] md:min-h-[480px] md:p-12">
             <div
               className={`mb-12 flex flex-1 flex-col transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
                 contentVisible ? "opacity-100" : "opacity-0"
