@@ -216,6 +216,37 @@ const FILTER_KEYWORDS: Record<keyof MenuFilters, RegExp> = {
 };
 
 /**
+ * The same reading in the other direction. FILTER_KEYWORDS is loose on purpose
+ * — it only has to notice that a subject came up — but a condition the guest
+ * spelled out is not a matter of degree, and the model drops one of those about
+ * as often as it invents a condition nobody asked for. "An iced gluten-free
+ * drink under $8" came back iced, under $8, drinks, glutenFree null: the panel
+ * repeated three of the four things the guest had just typed and quietly lost
+ * the one that was a dietary need. Every pattern here is a phrasing that can
+ * only be a request for the condition, so setting it is not a judgement call.
+ */
+const STATED_DIETARY: [key: "dairyFree" | "vegan" | "glutenFree", pattern: RegExp][] =
+  [
+    [
+      "glutenFree",
+      /(\bgluten[\s-]?free\b|\bno gluten\b|\bwithout gluten\b|\bgluten[\s-]?intoleran(t|ce)\b|\b(coeliac|celiac)\b)/i,
+    ],
+    [
+      "dairyFree",
+      /(\bdairy[\s-]?free\b|\bnon[\s-]?dairy\b|\bno dairy\b|\bwithout (dairy|milk)\b|\blactose[\s-]?(free|intolerant)\b)/i,
+    ],
+    ["vegan", /\bvegan\b/i],
+  ];
+
+/**
+ * Same rule for the one condition that is a ceiling rather than a flag. Only
+ * the phrasings that can mean nothing but zero are listed: "low caffeine" is a
+ * reading, and readings stay with the model.
+ */
+const CAFFEINE_FREE =
+  /(\bcaffeine[\s-]?free\b|\bno caffeine\b|\bwithout caffeine\b|\bdecaf\b|\bdecaffeinated\b)/i;
+
+/**
  * The model reliably identifies which item the guest named but drops the
  * direction about half the time — "something rich" and "a vegan dessert" both
  * came back null while "a light dessert" worked. Read it out of the guest's own
@@ -523,6 +554,16 @@ export async function POST(request: Request) {
       const isNew = filters[key] !== null && currentFilters[key] == null;
       if (isNew && !FILTER_KEYWORDS[key].test(message)) filters[key] = null;
     }
+
+    // The other half of that rule — see STATED_DIETARY. It runs after both
+    // gates above so a condition the guest spelled out this turn outranks
+    // everything: the model forgetting to carry it, and a tag they removed
+    // earlier, which raising the subject again is meant to bring back.
+    for (const [key, pattern] of STATED_DIETARY) {
+      if (pattern.test(message)) filters[key] = true;
+    }
+
+    if (CAFFEINE_FREE.test(message)) filters.maxCaffeine = "none";
 
     // Same rule, stricter word list — see MATCHA_STRENGTH_WORDS.
     if (

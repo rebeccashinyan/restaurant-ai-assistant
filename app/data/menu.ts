@@ -682,6 +682,11 @@ export function activeFilterCount(filters: MenuFilters): number {
  * Drops conditions that exclude nothing. A model that fills every field rather
  * than leaving nulls produces tags like "Matcha 0 of 5 or more", which read as
  * a constraint the guest asked for and did not.
+ *
+ * The three flags only ever narrow: "dairyFree: false" is not a request for
+ * something with dairy in it, it is the absence of a request. Left set it would
+ * draw a "Dairy-free" tag that filters nothing, which is the one thing the
+ * panel must never do.
  */
 export function normalizeFilters(filters: MenuFilters): MenuFilters {
   return {
@@ -689,6 +694,9 @@ export function normalizeFilters(filters: MenuFilters): MenuFilters {
     maxSweetness: filters.maxSweetness === 5 ? null : filters.maxSweetness,
     minMatcha: filters.minMatcha === 0 ? null : filters.minMatcha,
     maxCaffeine: filters.maxCaffeine === "high" ? null : filters.maxCaffeine,
+    dairyFree: filters.dairyFree === false ? null : filters.dairyFree,
+    vegan: filters.vegan === false ? null : filters.vegan,
+    glutenFree: filters.glutenFree === false ? null : filters.glutenFree,
   };
 }
 
